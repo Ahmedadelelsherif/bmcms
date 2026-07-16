@@ -1,42 +1,24 @@
-/**
- * stats.js — التقارير والإحصائيات
- * يعتمد على: config.js, state.js, records.js
- *
- * buildStats()             → التقرير الرئيسي
- * buildBloodStats(arr)     → إحصائيات معمل الدم (يوم1/يوم2/طبيعي/غير طبيعي)
- * buildScreenStats(arr)    → إحصائيات افحص واطمن (نطاقات الضغط والسكر)
- * buildAbnormalReport(arr) → بيان الحالات الغير طبيعية
- *
- * ⚠️ لو أضفت تحليل جديد في forms.js: أضفه في buildBloodStats
- */
-
-// ════════════════════════════════════════════════════════════════════
-// 13. STATS — الإحصائيات والتقارير
-//    📌 buildStats: الإحصائيات العامة
-//    📌 buildBloodStats / buildParaStats / buildXrayStats / buildScreenStats
-//    ⚠️ لو أضفت فحص جديد: أضفه في دالة الإحصائيات المناسبة
-// ════════════════════════════════════════════════════════════════════
-function buildStats(){
+// ===== stats.js =====
+function buildStats() {
   buildDashboard();
   let filtered = records;
-  if(curUser && curUser.role !== 'admin')
-    filtered = records.filter(r=>r.dept===curUser.role);
+  if (curUser && curUser.role !== 'admin')
+    filtered = records.filter(r => r.dept === curUser.role);
 
-  let b=filtered.filter(r=>r.dept==='blood');
-  let p=filtered.filter(r=>r.dept==='para');
-  let x=filtered.filter(r=>r.dept==='xray');
-  let s=filtered.filter(r=>r.dept==='screen');
+  let b = filtered.filter(r => r.dept === 'blood');
+  let p = filtered.filter(r => r.dept === 'para');
+  let x = filtered.filter(r => r.dept === 'xray');
+  let s = filtered.filter(r => r.dept === 'screen');
 
-  // ── إجمالي عام ──────────────────────────────────────────────
-  let html=`<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+  let html = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
     <button class="btn ok" onclick="sendWhatsAppReport()" style="background:#25D366;color:#fff">📱 إرسال واتساب</button>
     <button class="btn pr" onclick="exportExcel()" style="background:#1a7a4a;color:#fff">📊 تحميل Excel</button>
     <button class="btn" onclick="setRecFilter('abnormal');gotoSc('records')" style="background:#c0392b;color:#fff">⚠️ الحالات الغير طبيعية (${filtered.filter(r=>hasAbnormal(r)).length})</button>
   </div>`;
 
-  // ── جدول اليوم الأول / الثاني / الإجمالي ───────────────────
-  let d1=filtered.filter(r=>r.day==1), d2=filtered.filter(r=>r.day==2);
-  html+=`<div class="card" style="margin-bottom:12px"><div class="ch pr">📅 ملخص الأيام</div><div class="cb">
+  let d1 = filtered.filter(r => r.day == 1),
+    d2 = filtered.filter(r => r.day == 2);
+  html += `<div class="card" style="margin-bottom:12px"><div class="ch pr">📅 ملخص الأيام</div><div class="cb">
   <table style="width:100%;border-collapse:collapse;font-size:12px">
   <thead><tr style="background:var(--pr);color:#fff">
     <th style="padding:8px 12px;text-align:right">القسم</th>
@@ -46,17 +28,17 @@ function buildStats(){
     <th style="padding:8px;text-align:center;background:#8b1a1a">⚠️ غير طبيعي</th>
   </tr></thead><tbody>`;
 
-  [{dept:'blood',name:'🩸 معمل الدم',col:'#8b1a1a'},
-   {dept:'para',name:'🔬 الطفيليات',col:'#6b4a1a'},
-   {dept:'xray',name:'📡 الأشعة',col:'#1a4a6b'},
-   {dept:'screen',name:'💊 افحص واطمن',col:'#4a1a6b'}
-  ].forEach(({dept,name,col})=>{
-    let all=filtered.filter(r=>r.dept===dept);
-    let _d1=d1.filter(r=>r.dept===dept);
-    let _d2=d2.filter(r=>r.dept===dept);
-    let ab=all.filter(r=>hasAbnormal(r));
-    if(!all.length)return;
-    html+=`<tr style="border-bottom:1px solid var(--bdr)">
+  [{ dept: 'blood', name: '🩸 معمل الدم', col: '#8b1a1a' },
+    { dept: 'para', name: '🔬 الطفيليات', col: '#6b4a1a' },
+    { dept: 'xray', name: '📡 الأشعة', col: '#1a4a6b' },
+    { dept: 'screen', name: '💊 افحص واطمن', col: '#4a1a6b' }
+  ].forEach(({ dept, name, col }) => {
+    let all = filtered.filter(r => r.dept === dept);
+    let _d1 = d1.filter(r => r.dept === dept);
+    let _d2 = d2.filter(r => r.dept === dept);
+    let ab = all.filter(r => hasAbnormal(r));
+    if (!all.length) return;
+    html += `<tr style="border-bottom:1px solid var(--bdr)">
       <td style="padding:8px 12px;font-weight:700;color:${col}">${name}</td>
       <td style="padding:8px;text-align:center;font-size:16px;font-weight:900">${_d1.length}</td>
       <td style="padding:8px;text-align:center;font-size:16px;font-weight:900">${_d2.length}</td>
@@ -64,7 +46,7 @@ function buildStats(){
       <td style="padding:8px;text-align:center;font-size:16px;font-weight:900;color:#c0392b;background:#fff8f8">${ab.length}</td>
     </tr>`;
   });
-  html+=`<tr style="background:#f8faff;font-weight:900">
+  html += `<tr style="background:#f8faff;font-weight:900">
     <td style="padding:8px 12px">📊 الإجمالي الكلي</td>
     <td style="padding:8px;text-align:center;font-size:18px;font-weight:900">${d1.length}</td>
     <td style="padding:8px;text-align:center;font-size:18px;font-weight:900">${d2.length}</td>
@@ -73,31 +55,29 @@ function buildStats(){
   </tr></tbody></table>
   </div></div>`;
 
-  // ── تفصيل كل قسم ────────────────────────────────────────────
-  if(b.length) html += buildBloodStats(b);
-  if(p.length) html += buildParaStats(p);
-  if(x.length) html += buildXrayStats(x);
-  if(s.length) html += buildScreenStats(s);
+  if (b.length) html += buildBloodStats(b);
+  if (p.length) html += buildParaStats(p);
+  if (x.length) html += buildXrayStats(x);
+  if (s.length) html += buildScreenStats(s);
 
-  // ── بيان تفصيلي بالحالات الغير طبيعية ──────────────────────
-  let abnCases = filtered.filter(r=>hasAbnormal(r));
-  if(abnCases.length){
-    html+=`<div class="card" style="margin-top:14px"><div class="ch" style="background:#c0392b;color:#fff">⚠️ بيان تفصيلي بالحالات الغير طبيعية (${abnCases.length} حالة)</div><div class="cb">`;
-    html+=`<table style="width:100%;border-collapse:collapse;font-size:11px">
+  let abnCases = filtered.filter(r => hasAbnormal(r));
+  if (abnCases.length) {
+    html += `<div class="card" style="margin-top:14px"><div class="ch" style="background:#c0392b;color:#fff">⚠️ بيان تفصيلي بالحالات الغير طبيعية (${abnCases.length} حالة)</div><div class="cb">`;
+    html += `<table style="width:100%;border-collapse:collapse;font-size:11px">
     <thead><tr style="background:#c0392b;color:#fff">
       <th style="padding:7px">#</th><th style="padding:7px">الاسم</th><th style="padding:7px">التذكرة</th>
       <th style="padding:7px">القسم</th><th style="padding:7px">اليوم</th><th style="padding:7px">التليفون</th>
       <th style="padding:7px">النتائج الغير طبيعية</th>
     </tr></thead><tbody>`;
-    abnCases.forEach((r,i)=>{
-      // Collect all abnormal fields with their labels
-      const FIELD_LABELS={hbR:'Hb',rbsR:'سكر RBS',hba1cR:'HbA1c',hpR:'HP',rbcR:'RBC',hctR:'HCT',
-        wbcR:'WBC',pltR:'PLT',uricR:'يوريك',ureaR:'بولينا',creatR:'كرياتنين',
-        tpR:'TP',albR:'ألبيومين',biliR:'بيليروبين',sgotR:'SGOT',sgptR:'SGPT',
-        ldlR:'LDL',hdlR:'HDL',tgR:'TG',cholR:'كوليسترول',btR:'BT',ctR:'CT',esrR:'ESR',
-        bpR:'ضغط الدم',rbsR:'سكر',hba1cR:'HbA1c',result:'نتيجة الأشعة'};
-      let abnFields=Object.keys(r).filter(k=>r[k]==='غير طبيعي').map(k=>FIELD_LABELS[k]||k).filter(v=>v);
-      html+=`<tr style="border-bottom:1px solid var(--bdr);background:${i%2?'#fff8f8':'#fff'}">
+    abnCases.forEach((r, i) => {
+      const FIELD_LABELS = { hbR: 'Hb', rbsR: 'سكر RBS', hba1cR: 'HbA1c', hpR: 'HP', rbcR: 'RBC', hctR: 'HCT',
+        wbcR: 'WBC', pltR: 'PLT', uricR: 'يوريك', ureaR: 'بولينا', creatR: 'كرياتنين',
+        tpR: 'TP', albR: 'ألبيومين', biliR: 'بيليروبين', sgotR: 'SGOT', sgptR: 'SGPT',
+        ldlR: 'LDL', hdlR: 'HDL', tgR: 'TG', cholR: 'كوليسترول', btR: 'BT', ctR: 'CT', esrR: 'ESR',
+        bpR: 'ضغط الدم', result: 'نتيجة الأشعة'
+      };
+      let abnFields = Object.keys(r).filter(k => r[k] === 'غير طبيعي').map(k => FIELD_LABELS[k] || k).filter(v => v);
+      html += `<tr style="border-bottom:1px solid var(--bdr);background:${i%2?'#fff8f8':'#fff'}">
         <td style="padding:6px;text-align:center">${i+1}</td>
         <td style="padding:6px;font-weight:700">${r.name||'—'}</td>
         <td style="padding:6px">${r.ticket||'—'}</td>
@@ -107,30 +87,32 @@ function buildStats(){
         <td style="padding:6px"><span style="color:#c0392b;font-weight:700">${abnFields.join(' ، ')||'—'}</span></td>
       </tr>`;
     });
-    html+='</tbody></table></div></div>';
+    html += '</tbody></table></div></div>';
   }
 
-  document.getElementById('statsWrap').innerHTML=html;
+  document.getElementById('statsWrap').innerHTML = html;
 }
-function buildBloodStats(arr){
-  let d1=arr.filter(r=>r.day==1), d2=arr.filter(r=>r.day==2);
-  const stat=(a,key)=>({
-    total:a.length,
-    done:a.filter(r=>r[key]).length,
-    norm:a.filter(r=>r[key+'R']==='طبيعي').length,
-    ab:a.filter(r=>['غير طبيعي','مرتفع','منخفض'].includes(r[key+'R']||'')).length
+
+function buildBloodStats(arr) {
+  let d1 = arr.filter(r => r.day == 1),
+    d2 = arr.filter(r => r.day == 2);
+  const stat = (a, key) => ({
+    total: a.length,
+    done: a.filter(r => r[key]).length,
+    norm: a.filter(r => r[key + 'R'] === 'طبيعي').length,
+    ab: a.filter(r => ['غير طبيعي', 'مرتفع', 'منخفض'].includes(r[key + 'R'] || '')).length
   });
-  const tests=[
-    {key:'hb',label:'Hb هيموجلوبين'},{key:'rbs',label:'RBS سكر عشوائي'},{key:'hba1c',label:'HbA1c سكر تراكمي'},
-    {key:'hp',label:'HP صفائح دموية'},{key:'rbc',label:'RBC كريات حمراء'},{key:'hct',label:'HCT هيماتوكريت'},
-    {key:'wbc',label:'WBC كريات بيضاء'},{key:'plt',label:'PLT صفائح'},
-    {key:'uric',label:'يوريك أسيد'},{key:'urea',label:'بولينا'},{key:'creat',label:'كرياتينين'},
-    {key:'tp',label:'TP بروتين كلي'},{key:'alb',label:'ألبيومين'},{key:'bili',label:'بيليروبين'},
-    {key:'sgot',label:'SGOT'},{key:'sgpt',label:'SGPT'},
-    {key:'ldl',label:'LDL'},{key:'hdl',label:'HDL'},{key:'tg',label:'TG دهون'},{key:'chol',label:'كوليسترول'},
-    {key:'bt',label:'BT وقت نزف'},{key:'ct',label:'CT وقت تجلط'},{key:'esr',label:'ESR ترسيب'}
+  const tests = [
+    { key: 'hb', label: 'Hb هيموجلوبين' }, { key: 'rbs', label: 'RBS سكر عشوائي' }, { key: 'hba1c', label: 'HbA1c سكر تراكمي' },
+    { key: 'hp', label: 'HP صفائح دموية' }, { key: 'rbc', label: 'RBC كريات حمراء' }, { key: 'hct', label: 'HCT هيماتوكريت' },
+    { key: 'wbc', label: 'WBC كريات بيضاء' }, { key: 'plt', label: 'PLT صفائح' },
+    { key: 'uric', label: 'يوريك أسيد' }, { key: 'urea', label: 'بولينا' }, { key: 'creat', label: 'كرياتينين' },
+    { key: 'tp', label: 'TP بروتين كلي' }, { key: 'alb', label: 'ألبيومين' }, { key: 'bili', label: 'بيليروبين' },
+    { key: 'sgot', label: 'SGOT' }, { key: 'sgpt', label: 'SGPT' },
+    { key: 'ldl', label: 'LDL' }, { key: 'hdl', label: 'HDL' }, { key: 'tg', label: 'TG دهون' }, { key: 'chol', label: 'كوليسترول' },
+    { key: 'bt', label: 'BT وقت نزف' }, { key: 'ct', label: 'CT وقت تجلط' }, { key: 'esr', label: 'ESR ترسيب' }
   ];
-  let html=`<div class="card" style="margin-bottom:12px">
+  let html = `<div class="card" style="margin-bottom:12px">
     <div class="ch" style="background:#8b1a1a;color:#fff">🩸 إحصائيات معمل الدم (${arr.length} حالة)</div>
     <div class="cb" style="overflow-x:auto">
     <table style="min-width:700px">
@@ -146,10 +128,12 @@ function buildBloodStats(arr){
       <th style="border-left:2px solid rgba(255,255,255,.2)">العدد</th><th style="color:#90ee90">طبيعي</th><th style="color:#ffaaaa">غير طبيعي</th>
       <th style="border-left:2px solid rgba(255,255,255,.2)">العدد</th><th style="color:#90ee90">طبيعي</th><th style="color:#ffaaaa">غير طبيعي</th>
     </tr></thead><tbody>`;
-  tests.forEach((t,i)=>{
-    let s1=stat(d1,t.key), s2=stat(d2,t.key), sT=stat(arr,t.key);
-    if(!sT.done)return; // skip tests not done
-    html+=`<tr style="background:${i%2?'#fff8f8':'#fff'}">
+  tests.forEach((t, i) => {
+    let s1 = stat(d1, t.key),
+      s2 = stat(d2, t.key),
+      sT = stat(arr, t.key);
+    if (!sT.done) return;
+    html += `<tr style="background:${i%2?'#fff8f8':'#fff'}">
       <td style="font-weight:700;padding:6px 10px">${t.label}</td>
       <td style="text-align:center">${s1.done||'—'}</td>
       <td style="text-align:center;color:#1a7a4a;font-weight:700">${s1.norm||'—'}</td>
@@ -162,21 +146,23 @@ function buildBloodStats(arr){
       <td style="text-align:center;color:#c0392b;font-weight:900;background:#fff0f0">${sT.ab}</td>
     </tr>`;
   });
-  html+=`</tbody></table></div></div>`;
+  html += `</tbody></table></div></div>`;
   return html;
 }
-function buildParaStats(arr){
-  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
+
+function buildParaStats(arr) {
+  let d1 = arr.filter(r => r.day === 1),
+    d2 = arr.filter(r => r.day === 2);
   let fields = [
-    {k:'bilharzia', l:'بلهارسيا'}, {k:'ameba', l:'أميبا'}, {k:'hpylori', l:'H.Pylori'},
-    {k:'sugar', l:'سكر بول'}, {k:'preg', l:'حمل بول'}
+    { k: 'bilharzia', l: 'بلهارسيا' }, { k: 'ameba', l: 'أميبا' }, { k: 'hpylori', l: 'H.Pylori' },
+    { k: 'sugar', l: 'سكر بول' }, { k: 'preg', l: 'حمل بول' }
   ];
   let rows = '';
   fields.forEach(f => {
-    let p1 = d1.filter(r=>r[f.k]==='غير طبيعي').length;
-    let p2 = d2.filter(r=>r[f.k]==='غير طبيعي').length;
-    let t1 = d1.filter(r=>r[f.k] && r[f.k]!=='').length;
-    let t2 = d2.filter(r=>r[f.k] && r[f.k]!=='').length;
+    let p1 = d1.filter(r => r[f.k] === 'غير طبيعي').length;
+    let p2 = d2.filter(r => r[f.k] === 'غير طبيعي').length;
+    let t1 = d1.filter(r => r[f.k] && r[f.k] !== '').length;
+    let t2 = d2.filter(r => r[f.k] && r[f.k] !== '').length;
     rows += `<tr><td>${f.l}</td><td>${t1||'—'}</td><td style="color:var(--no)">${p1||'—'}</td>
       <td>${t2||'—'}</td><td style="color:var(--no)">${p2||'—'}</td>
       <td>${t1+t2||'—'}</td><td style="color:var(--no)">${p1+p2||'—'}</td></tr>`;
@@ -186,10 +172,14 @@ function buildParaStats(arr){
     <tr><th></th><th>عدد</th><th>إيجابي</th><th>عدد</th><th>إيجابي</th><th>عدد</th><th>إيجابي</th></tr></thead>
     <tbody>${rows}</tbody></table></div></div>`;
 }
-function buildXrayStats(arr){
-  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
-  let n1 = d1.filter(r=>r.result==='طبيعي').length, p1 = d1.filter(r=>r.result==='غير طبيعي').length;
-  let n2 = d2.filter(r=>r.result==='طبيعي').length, p2 = d2.filter(r=>r.result==='غير طبيعي').length;
+
+function buildXrayStats(arr) {
+  let d1 = arr.filter(r => r.day === 1),
+    d2 = arr.filter(r => r.day === 2);
+  let n1 = d1.filter(r => r.result === 'طبيعي').length,
+    p1 = d1.filter(r => r.result === 'غير طبيعي').length;
+  let n2 = d2.filter(r => r.result === 'طبيعي').length,
+    p2 = d2.filter(r => r.result === 'غير طبيعي').length;
   return `<div class="card"><div class="ch xray">📡 الأشعة</div><div class="cb">
     <table class="rpt-tbl"><thead><tr><th>اليوم</th><th>طبيعي</th><th>غير طبيعي</th><th>الإجمالي</th></tr></thead>
     <tbody><tr><td>الأول</td><td>${n1}</td><td style="color:var(--no)">${p1}</td><td>${n1+p1}</td></tr>
@@ -197,37 +187,41 @@ function buildXrayStats(arr){
     <tr style="font-weight:700;background:#e8f0ff"><td>الإجمالي</td><td>${n1+n2}</td><td style="color:var(--no)">${p1+p2}</td><td>${arr.length}</td></tr>
     </tbody></table></div></div>`;
 }
-function buildScreenStats(arr){
-  let d1=arr.filter(r=>r.day==1), d2=arr.filter(r=>r.day==2);
-  const m=arr.filter(r=>r.gender==='ذكر'), f=arr.filter(r=>r.gender==='أنثى');
-  const smk=arr.filter(r=>r.smoke==='مدخن');
-  // BP ranges
-  function bpRange(r){
-    let sys=parseInt(r['bp-sys']||r.bpSys||0), dia=parseInt(r['bp-dia']||r.bpDia||0);
-    if(!sys) return null;
-    if(sys<100||dia<70) return 'منخفض (<100/70)';
-    if(sys<=120&&dia<=80) return 'طبيعي (≤120/80)';
-    if(sys<=139&&dia<=89) return 'حدودي (121-139/81-89)';
-    if(sys<=159&&dia<=99) return 'مرتفع درجة 1 (140-159/90-99)';
+
+function buildScreenStats(arr) {
+  let d1 = arr.filter(r => r.day == 1),
+    d2 = arr.filter(r => r.day == 2);
+  const m = arr.filter(r => r.gender === 'ذكر'),
+    f = arr.filter(r => r.gender === 'أنثى');
+  const smk = arr.filter(r => r.smoke === 'مدخن');
+
+  function bpRange(r) {
+    let sys = parseInt(r['bp-sys'] || r.bpSys || 0),
+      dia = parseInt(r['bp-dia'] || r.bpDia || 0);
+    if (!sys) return null;
+    if (sys < 100 || dia < 70) return 'منخفض (<100/70)';
+    if (sys <= 120 && dia <= 80) return 'طبيعي (≤120/80)';
+    if (sys <= 139 && dia <= 89) return 'حدودي (121-139/81-89)';
+    if (sys <= 159 && dia <= 99) return 'مرتفع درجة 1 (140-159/90-99)';
     return 'مرتفع درجة 2 (≥160/100)';
   }
-  function rbsRange(r){
-    let v=parseInt(r.rbs||0);
-    if(!v) return null;
-    if(v<70) return 'منخفض (<70)';
-    if(v<=140) return 'طبيعي (70-140)';
-    if(v<=200) return 'حدودي (141-200)';
+
+  function rbsRange(r) {
+    let v = parseInt(r.rbs || 0);
+    if (!v) return null;
+    if (v < 70) return 'منخفض (<70)';
+    if (v <= 140) return 'طبيعي (70-140)';
+    if (v <= 200) return 'حدودي (141-200)';
     return 'مرتفع (>200)';
   }
-  const BP_RANGES=['منخفض (<100/70)','طبيعي (≤120/80)','حدودي (121-139/81-89)','مرتفع درجة 1 (140-159/90-99)','مرتفع درجة 2 (≥160/100)'];
-  const RBS_RANGES=['منخفض (<70)','طبيعي (70-140)','حدودي (141-200)','مرتفع (>200)'];
+  const BP_RANGES = ['منخفض (<100/70)', 'طبيعي (≤120/80)', 'حدودي (121-139/81-89)', 'مرتفع درجة 1 (140-159/90-99)', 'مرتفع درجة 2 (≥160/100)'];
+  const RBS_RANGES = ['منخفض (<70)', 'طبيعي (70-140)', 'حدودي (141-200)', 'مرتفع (>200)'];
 
-  let html=`<div class="card" style="margin-bottom:12px">
+  let html = `<div class="card" style="margin-bottom:12px">
     <div class="ch" style="background:#4a1a6b;color:#fff">💊 إحصائيات افحص واطمن (${arr.length} حالة)</div>
     <div class="cb">`;
 
-  // Overview table
-  html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
+  html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px">
     <div style="background:#4a1a6b;color:#fff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900">${arr.length}</div><div style="font-size:11px">الإجمالي</div></div>
     <div style="background:#1a4a6b;color:#fff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900">${m.length}</div><div style="font-size:11px">ذكور</div></div>
     <div style="background:#6b1a4a;color:#fff;border-radius:8px;padding:12px;text-align:center"><div style="font-size:22px;font-weight:900">${f.length}</div><div style="font-size:11px">إناث</div></div>
@@ -237,91 +231,58 @@ function buildScreenStats(arr){
   </div>`;
 
   // BP Table
-  html+=`<div style="font-weight:900;color:#4a1a6b;margin-bottom:8px;font-size:13px">📊 ضغط الدم</div>
+  html += `<div style="font-weight:900;color:#4a1a6b;margin-bottom:8px;font-size:13px">📊 ضغط الدم</div>
   <table style="width:100%;margin-bottom:14px"><thead><tr style="background:#4a1a6b;color:#fff">
     <th style="padding:8px">النطاق</th>
     <th style="padding:8px;text-align:center">اليوم الأول</th><th style="padding:8px;text-align:center">ذكور</th><th style="padding:8px;text-align:center">إناث</th>
     <th style="padding:8px;text-align:center;border-left:2px solid rgba(255,255,255,.3)">اليوم الثاني</th><th style="padding:8px;text-align:center">ذكور</th><th style="padding:8px;text-align:center">إناث</th>
     <th style="padding:8px;text-align:center;border-left:2px solid rgba(255,255,255,.3);background:#2d0d45">الإجمالي</th>
   </tr></thead><tbody>`;
-  BP_RANGES.forEach((range,i)=>{
-    let all=arr.filter(r=>bpRange(r)===range);
-    let _d1=d1.filter(r=>bpRange(r)===range), _d2=d2.filter(r=>bpRange(r)===range);
-    if(!all.length)return;
-    let d1m=_d1.filter(r=>r.gender==='ذكر'),d1f=_d1.filter(r=>r.gender==='أنثى');
-    let d2m=_d2.filter(r=>r.gender==='ذكر'),d2f=_d2.filter(r=>r.gender==='أنثى');
-    let isAb=range.includes('مرتفع')||range.includes('منخفض');
-    html+=`<tr style="background:${isAb?'#fff0f0':i%2?'#f8f4ff':'#fff'}">
+  BP_RANGES.forEach((range, i) => {
+    let all = arr.filter(r => bpRange(r) === range);
+    let _d1 = d1.filter(r => bpRange(r) === range),
+      _d2 = d2.filter(r => bpRange(r) === range);
+    if (!all.length) return;
+    let d1m = _d1.filter(r => r.gender === 'ذكر'),
+      d1f = _d1.filter(r => r.gender === 'أنثى');
+    let d2m = _d2.filter(r => r.gender === 'ذكر'),
+      d2f = _d2.filter(r => r.gender === 'أنثى');
+    let isAb = range.includes('مرتفع') || range.includes('منخفض');
+    html += `<tr style="background:${isAb?'#fff0f0':i%2?'#f8f4ff':'#fff'}">
       <td style="padding:7px;font-weight:700;color:${isAb?'#c0392b':range.includes('حدودي')?'#f0a832':'#1a7a4a'}">${range}</td>
       <td style="text-align:center">${_d1.length}</td><td style="text-align:center">${d1m.length}</td><td style="text-align:center">${d1f.length}</td>
       <td style="text-align:center;border-left:2px solid #e0e0e0">${_d2.length}</td><td style="text-align:center">${d2m.length}</td><td style="text-align:center">${d2f.length}</td>
       <td style="text-align:center;font-weight:900;border-left:2px solid #e0e0e0;background:${isAb?'#ffe8e8':'#f0f8f0'}">${all.length}</td>
     </tr>`;
   });
-  html+=`</tbody></table>`;
+  html += `</tbody></table>`;
 
   // Sugar Table
-  html+=`<div style="font-weight:900;color:#4a1a6b;margin-bottom:8px;font-size:13px">📊 السكر العشوائي (RBS)</div>
+  html += `<div style="font-weight:900;color:#4a1a6b;margin-bottom:8px;font-size:13px">📊 السكر العشوائي (RBS)</div>
   <table style="width:100%;margin-bottom:14px"><thead><tr style="background:#4a1a6b;color:#fff">
     <th style="padding:8px">النطاق</th>
     <th style="padding:8px;text-align:center">اليوم الأول</th><th style="padding:8px;text-align:center">ذكور</th><th style="padding:8px;text-align:center">إناث</th>
     <th style="padding:8px;text-align:center;border-left:2px solid rgba(255,255,255,.3)">اليوم الثاني</th><th style="padding:8px;text-align:center">ذكور</th><th style="padding:8px;text-align:center">إناث</th>
     <th style="padding:8px;text-align:center;border-left:2px solid rgba(255,255,255,.3);background:#2d0d45">الإجمالي</th>
   </tr></thead><tbody>`;
-  RBS_RANGES.forEach((range,i)=>{
-    let all=arr.filter(r=>rbsRange(r)===range);
-    let _d1=d1.filter(r=>rbsRange(r)===range), _d2=d2.filter(r=>rbsRange(r)===range);
-    if(!all.length)return;
-    let d1m=_d1.filter(r=>r.gender==='ذكر'),d1f=_d1.filter(r=>r.gender==='أنثى');
-    let d2m=_d2.filter(r=>r.gender==='ذكر'),d2f=_d2.filter(r=>r.gender==='أنثى');
-    let isAb=range.includes('مرتفع')||range.includes('منخفض');
-    html+=`<tr style="background:${isAb?'#fff0f0':i%2?'#f8f4ff':'#fff'}">
+  RBS_RANGES.forEach((range, i) => {
+    let all = arr.filter(r => rbsRange(r) === range);
+    let _d1 = d1.filter(r => rbsRange(r) === range),
+      _d2 = d2.filter(r => rbsRange(r) === range);
+    if (!all.length) return;
+    let d1m = _d1.filter(r => r.gender === 'ذكر'),
+      d1f = _d1.filter(r => r.gender === 'أنثى');
+    let d2m = _d2.filter(r => r.gender === 'ذكر'),
+      d2f = _d2.filter(r => r.gender === 'أنثى');
+    let isAb = range.includes('مرتفع') || range.includes('منخفض');
+    html += `<tr style="background:${isAb?'#fff0f0':i%2?'#f8f4ff':'#fff'}">
       <td style="padding:7px;font-weight:700;color:${isAb?'#c0392b':range.includes('حدودي')?'#f0a832':'#1a7a4a'}">${range}</td>
       <td style="text-align:center">${_d1.length}</td><td style="text-align:center">${d1m.length}</td><td style="text-align:center">${d1f.length}</td>
       <td style="text-align:center;border-left:2px solid #e0e0e0">${_d2.length}</td><td style="text-align:center">${d2m.length}</td><td style="text-align:center">${d2f.length}</td>
       <td style="text-align:center;font-weight:900;border-left:2px solid #e0e0e0;background:${isAb?'#ffe8e8':'#f0f8f0'}">${all.length}</td>
     </tr>`;
   });
-  html+=`</tbody></table>`;
-  html+=`</div></div>`;
+  html += `</tbody></table>`;
+  html += `</div></div>`;
   return html;
-}
-// ── Extracted Method: buildAbnormalReport (كان داخل buildStats) ───────
-function buildAbnormalReport(filtered){
-  const abnCases = filtered.filter(r=>hasAbnormal(r));
-  if(!abnCases.length) return '';
-  const FIELD_LABELS={hbR:'Hb',rbsR:'سكر RBS',hba1cR:'HbA1c',hpR:'HP',rbcR:'RBC',hctR:'HCT',
-    wbcR:'WBC',pltR:'PLT',uricR:'يوريك',ureaR:'بولينا',creatR:'كرياتنين',
-    tpR:'TP',albR:'ألبيومين',biliR:'بيليروبين',sgotR:'SGOT',sgptR:'SGPT',
-    ldlR:'LDL',hdlR:'HDL',tgR:'TG',cholR:'كوليسترول',btR:'BT',ctR:'CT',esrR:'ESR',
-    bpR:'ضغط الدم',rbsR:'سكر',hba1cR:'HbA1c',result:'نتيجة الأشعة'};
-  const DEPT_COLORS_MAP={blood:'#8b1a1a',para:'#6b4a1a',xray:'#1a4a6b',screen:'#4a1a6b'};
-
-  let html=`<div class="card" style="margin-top:14px">
-    <div class="ch" style="background:#c0392b;color:#fff;display:flex;justify-content:space-between;align-items:center">
-      <span>⚠️ بيان تفصيلي بالحالات الغير طبيعية (${abnCases.length} حالة)</span>
-      <button onclick="exportAbnormalExcel()" style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);color:#fff;padding:4px 12px;border-radius:6px;font-family:'Cairo',sans-serif;font-size:11px;cursor:pointer">📊 Excel</button>
-    </div>
-    <div class="cb" style="overflow-x:auto">
-    <table><thead><tr>
-      <th>#</th><th>الاسم</th><th>التذكرة</th><th>القسم</th>
-      <th>اليوم</th><th>التليفون</th><th>النتائج الغير طبيعية</th>
-    </tr></thead><tbody>`;
-  abnCases.forEach((r,i)=>{
-    const abnFields=Object.keys(r)
-      .filter(k=>ABNORMAL_VALS.has(String(r[k]).trim()))
-      .map(k=>FIELD_LABELS[k]||null).filter(Boolean);
-    const deptColor=DEPT_COLORS_MAP[r.dept]||'#555';
-    html+=`<tr style="background:${i%2?'#fff8f8':'#fff'}">
-      <td style="text-align:center">${i+1}</td>
-      <td style="font-weight:700">${r.name||'—'}</td>
-      <td>${r.ticket||'—'}</td>
-      <td><span style="background:${deptColor};color:#fff;padding:2px 8px;border-radius:8px;font-size:10px">${DNAMES[r.dept]||r.dept}</span></td>
-      <td style="text-align:center">${r.day==1?'أول':'ثاني'}</td>
-      <td style="direction:ltr">${r.phone||'—'}</td>
-      <td style="color:#c0392b;font-weight:700">${abnFields.join(' — ')||'—'}</td>
-    </tr>`;
-  });
-  html+=`</tbody></table></div></div>`;
-  return html;
-}
+                     }
