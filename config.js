@@ -12,7 +12,6 @@ const APP = Object.freeze({
   RBS_HIGH: 200,
 });
 
-// ✅ صح: قيم نصية مباشرة (بدون إشارة ذاتية)
 const STORAGE = Object.freeze({
   SESSION: 'SESSION',
   RECORDS: 'RECORDS',
@@ -25,7 +24,24 @@ const STORAGE = Object.freeze({
 const DEPT_PX = Object.freeze({ blood:'bl', para:'pa', xray:'xr', screen:'sc' });
 const ABNORMAL_VALS = new Set(['غير طبيعي','مرتفع','منخفض','موجب','موجبة','positive','ايجابي']);
 
-// أكواد الفحوصات
+// ===== أسماء وأيقونات الأقسام (تم إضافتها) =====
+const DNAMES = Object.freeze({
+  blood: 'معمل الدم',
+  para: 'معمل الطفيليات',
+  xray: 'الأشعة',
+  screen: 'افحص واطمن'
+});
+
+const DICONS = Object.freeze({
+  blood: '🩸',
+  para: '🔬',
+  xray: '📡',
+  screen: '💊'
+});
+
+const DEPS = ['blood', 'para', 'xray', 'screen'];
+
+// ===== أكواد الفحوصات =====
 const EXAM_CODES = {
   1:'تحليل عد دم كامل',2:'تحليل عد دم أبيض كلي ونوعي',3:'تحليل عد دم أبيض',
   4:'تحليل عد دم أحمر',5:'تحليل صفائح دموية',6:'تحليل هيماتوكريت',
@@ -59,22 +75,7 @@ const EXAM_CODES = {
   78:'رسم قلب',79:'فحص بصاق',80:'ألبيومين',81:'البروتين الكلي',
   82:'HBsAg',83:'HCV (AB)',84:'موجات فوق صوتية على القلب'
 };
-// ===== أسماء وأيقونات الأقسام =====
-const DNAMES = Object.freeze({
-  blood: 'معمل الدم',
-  para: 'معمل الطفيليات',
-  xray: 'الأشعة',
-  screen: 'افحص واطمن'
-});
 
-const DICONS = Object.freeze({
-  blood: '🩸',
-  para: '🔬',
-  xray: '📡',
-  screen: '💊'
-});
-
-const DEPS = ['blood', 'para', 'xray', 'screen'];
 function lookupExamCode() {
   const code = document.getElementById('xr-code')?.value?.trim();
   const nameEl = document.getElementById('xr-ename');
