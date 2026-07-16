@@ -59,7 +59,22 @@ const EXAM_CODES = {
   78:'رسم قلب',79:'فحص بصاق',80:'ألبيومين',81:'البروتين الكلي',
   82:'HBsAg',83:'HCV (AB)',84:'موجات فوق صوتية على القلب'
 };
+// ===== أسماء وأيقونات الأقسام =====
+const DNAMES = Object.freeze({
+  blood: 'معمل الدم',
+  para: 'معمل الطفيليات',
+  xray: 'الأشعة',
+  screen: 'افحص واطمن'
+});
 
+const DICONS = Object.freeze({
+  blood: '🩸',
+  para: '🔬',
+  xray: '📡',
+  screen: '💊'
+});
+
+const DEPS = ['blood', 'para', 'xray', 'screen'];
 function lookupExamCode() {
   const code = document.getElementById('xr-code')?.value?.trim();
   const nameEl = document.getElementById('xr-ename');
