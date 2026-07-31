@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>القوافل العلاجية - Firebase</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+:root{--pr:#1a4a6b;--pr2:#2a6496;--pr3:#0f2d45;--ac:#c8860a;--ac2:#f0a832;--ok:#1a7a4a;--no:#b83232;--bg:#eef2f7;--card:#fff;--bdr:#cdd8e8;--tx:#1a2535;--mu:#5a7080;--rbg:#fff0f0;--gbg:#f0fff4;--ybg:#fffbe8;--blood:#c8350a;--para:#1a7a4a;--xray:#1a4a9b;--screen:#7a1a7a;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+.hdr{background:linear-gradient(135deg,var(--pr3),var(--pr),var(--pr2));color:#fff;box-shadow:0 4px 20px rgba(26,74,107,.35);position:sticky;top:0;z-index:300;}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.12);gap:8px;flex-wrap:wrap;}
+.hdr-logo{display:flex;align-items:center;gap:10px;}
+.logo-box{width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.hdr-t h1{font-size:14px;font-weight:900;}
+.hdr-t p{font-size:10px;opacity:.75;margin-top:1px;}
+.hdr-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.ubadge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;}
+.dbadge{padding:5px 11px;border-radius:20px;font-size:12px;font-weight:700;color:#fff;}
+.dbadge.blood{background:var(--blood);}
+.dbadge.para{background:var(--para);}
+.dbadge.xray{background:var(--xray);}
+.dbadge.screen{background:var(--screen);}
+.hdr-nav{display:flex;overflow-x:auto;}
+.nb{padding:9px 13px;background:transparent;border:none;color:rgba(255,255,255,.65);cursor:pointer;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:4px;transition:all .2s;}
+.nb:hover{color:#fff;background:rgba(255,255,255,.08);}
+.nb.active{color:#fff;border-bottom-color:var(--ac2);background:rgba(255,255,255,.1);}
+.nb[disabled]{opacity:.3;cursor:not-allowed;pointer-events:none;}
+.sc{display:none;padding:14px;max-width:1500px;margin:0 auto;}
+.sc.active{display:block;}
+.card{background:var(--card);border-radius:13px;border:1px solid var(--bdr);box-shadow:0 2px 8px rgba(26,74,107,.05);overflow:hidden;margin-bottom:12px;}
+.ch{padding:9px 14px;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;}
+.ch.pr{background:linear-gradient(90deg,var(--pr),var(--pr2));}
+.ch.blood{background:linear-gradient(90deg,var(--blood),#e05030);}
+.ch.para{background:linear-gradient(90deg,#145a38,var(--para));}
+.ch.xray{background:linear-gradient(90deg,#0f2d8a,var(--xray));}
+.ch.screen{background:linear-gradient(90deg,#5a1060,var(--screen));}
+.cb{padding:12px;}
+.fg{display:grid;gap:8px;}
+.fg.c2{grid-template-columns:1fr 1fr;}
+.fg.c3{grid-template-columns:1fr 1fr 1fr;}
+.fg.c4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.fg.c5{grid-template-columns:1fr 1fr 1fr 1fr 1fr;}
+.fg.c6{grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;}
+.fw{display:flex;flex-direction:column;gap:3px;}
+.fw label{font-size:10px;font-weight:700;color:var(--mu);}
+.fw label .req{color:var(--no);}
+.fw label .hint{font-size:10px;font-weight:700;color:#1a7a4a;background:#e8f5e9;padding:2px 8px;border-radius:10px;display:inline-block;margin-right:6px;border:1px solid #a5d6a7;}
+.fw input,.fw select{padding:7px 9px;border:1.5px solid var(--bdr);border-radius:7px;font-family:'Cairo',sans-serif;font-size:12px;color:var(--tx);background:#fafcff;direction:rtl;transition:border-color .2s;width:100%;}
+.fw input:focus,.fw select:focus{outline:none;border-color:var(--pr);background:#fff;}
+.s2{grid-column:span 2;}
+.s3{grid-column:span 3;}
+.s4{grid-column:span 4;}
+.s5{grid-column:span 5;}
+.res-pos{background:var(--rbg)!important;border-color:#e0a0a0!important;color:var(--no)!important;font-weight:700;}
+.res-neg{background:var(--gbg)!important;border-color:#a0d0b0!important;color:var(--ok)!important;font-weight:700;}
+.btn{border:none;padding:8px 18px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{opacity:.88;}
+.btn.pr{background:linear-gradient(135deg,var(--pr),var(--pr2));color:#fff;}
+.btn.ac{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;}
+.btn.ok{background:var(--ok);color:#fff;}
+.btn.no{background:var(--no);color:#fff;}
+.btn.out{background:#fff;color:var(--pr);border:1.5px solid var(--pr);}
+.btn.out:hover{background:var(--pr);color:#fff;}
+.btn.full{width:100%;justify-content:center;margin-top:5px;}
+.btn.sm{padding:4px 9px;font-size:11px;border-radius:6px;}
+.btn.sm.edit{background:var(--ybg);color:var(--ac);border:1px solid #e0c080;}
+.btn.sm.edit:hover{background:var(--ac);color:#fff;}
+.btn.sm.del{background:var(--rbg);color:var(--no);border:1px solid #f5c6c6;}
+.btn.sm.del:hover{background:var(--no);color:#fff;}
+.sess-ban{background:linear-gradient(135deg,#eaf4ff,#d4eaff);border:1px solid #b0d4f0;border-radius:11px;padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.sinfo{display:flex;gap:16px;flex-wrap:wrap;}
+.sf{display:flex;flex-direction:column;}
+.sf .sl{font-size:10px;color:var(--mu);font-weight:600;}
+.sf .sv{font-size:12px;color:var(--pr);font-weight:700;}
+.edit-ban{background:linear-gradient(135deg,#fff8e8,#ffefc8);border:2px solid var(--ac);border-radius:11px;padding:9px 14px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between;gap:8px;}
+.edit-ban.show{display:flex;}
+.dsel{display:flex;gap:7px;margin-bottom:11px;}
+.db{flex:1;padding:8px;border:2px solid var(--bdr);border-radius:8px;background:#fff;font-family:'Cairo',sans-serif;font-size:12px;font-weight:700;cursor:pointer;color:var(--mu);transition:all .2s;text-align:center;}
+.db.active{border-color:var(--pr);background:var(--pr);color:#fff;}
+.esec{background:#fff;border-radius:11px;border:1px solid var(--bdr);margin-bottom:10px;overflow:hidden;}
+.esec-h{padding:8px 13px;font-size:11px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px;}
+.esec-h.basic{background:linear-gradient(90deg,#3a5a7b,#4a7aab);}
+.esec-h.blood{background:linear-gradient(90deg,var(--blood),#e05030);}
+.esec-h.para{background:linear-gradient(90deg,#145a38,var(--para));}
+.esec-h.xray{background:linear-gradient(90deg,#0f2d8a,var(--xray));}
+.esec-h.screen{background:linear-gradient(90deg,#5a1060,var(--screen));}
+.esec-b{padding:11px;}
+.eacts{display:flex;gap:7px;justify-content:flex-end;padding:10px 12px;border-top:1px solid var(--bdr);background:#f8fafc;flex-wrap:wrap;}
+.tbl-wrap{overflow-x:auto;border-radius:9px;border:1px solid var(--bdr);}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:700px;}
+thead th{color:#fff;padding:8px 6px;text-align:center;font-weight:700;white-space:nowrap;border-left:1px solid rgba(255,255,255,.1);}
+thead.blood-h{background:linear-gradient(90deg,var(--blood),#e05030);}
+thead.para-h{background:linear-gradient(90deg,#145a38,var(--para));}
+thead.xray-h{background:linear-gradient(90deg,#0f2d8a,var(--xray));}
+thead.screen-h{background:linear-gradient(90deg,#5a1060,var(--screen));}
+tbody tr{border-bottom:1px solid var(--bdr);transition:background .15s;}
+tbody tr:hover{background:#f0f6ff;}
+tbody tr:nth-child(even){background:#f8fafc;}
+tbody tr:nth-child(even):hover{background:#e8f2ff;}
+td{padding:7px 6px;text-align:center;vertical-align:middle;border-left:1px solid var(--bdr);}
+.bp{background:var(--rbg);color:var(--no);padding:1px 6px;border-radius:8px;font-weight:700;font-size:10px;border:1px solid #f5c6c6;}
+.bn{background:var(--gbg);color:var(--ok);padding:1px 6px;border-radius:8px;font-weight:700;font-size:10px;border:1px solid #b0d8b8;}
+.bv{background:#f0f4ff;color:var(--pr2);padding:1px 5px;border-radius:6px;font-size:10px;}
+.tacts{display:flex;gap:3px;justify-content:center;}
+.sbar{display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap;}
+.sbar input,.sbar select{padding:7px 10px;border:1.5px solid var(--bdr);border-radius:8px;font-family:'Cairo',sans-serif;font-size:12px;direction:rtl;background:#fff;}
+.sbar input{flex:1;min-width:150px;}
+.rh{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;flex-wrap:wrap;gap:7px;}
+.rh h3{font-size:13px;font-weight:900;color:var(--pr);}
+.rcnt{background:var(--pr);color:#fff;padding:2px 9px;border-radius:18px;font-size:11px;font-weight:700;margin-right:5px;}
+.stgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;margin-bottom:14px;}
+.stc{background:#fff;border:1px solid var(--bdr);border-radius:11px;padding:12px;text-align:center;}
+.stc .n{font-size:24px;font-weight:900;color:var(--pr);}
+.stc .l{font-size:10px;color:var(--mu);font-weight:600;margin-top:2px;}
+.stc.ac .n{color:var(--ac);}
+.stc.no .n{color:var(--no);}
+.stc.ok .n{color:var(--ok);}
+.rpt-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:14px;}
+.rpt-tbl th{background:var(--pr);color:#fff;padding:7px;text-align:center;border:1px solid #999;}
+.rpt-tbl td{padding:6px;text-align:center;border:1px solid #ddd;}
+.rpt-tbl tr:nth-child(even) td{background:#f5f8ff;}
+.rpt-tbl .tr td{background:#e8f0ff;font-weight:700;}
+.login-ov{position:fixed;inset:0;background:linear-gradient(135deg,var(--pr3),var(--pr));z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;}
+.login-box{background:#fff;border-radius:18px;padding:32px 28px;max-width:440px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.25);}
+.lerr{background:var(--rbg);border:1px solid #f5c6c6;border-radius:7px;padding:8px 12px;font-size:12px;color:var(--no);margin-bottom:12px;display:none;}
+.mov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;}
+.mov.show{display:flex;}
+.mbox{background:#fff;border-radius:15px;padding:24px;max-width:440px;width:92%;box-shadow:0 8px 40px rgba(0,0,0,.2);}
+.mbox h3{color:var(--pr);font-size:15px;font-weight:900;margin-bottom:7px;}
+.mbox p{color:var(--mu);font-size:12px;margin-bottom:16px;line-height:1.6;}
+.macts{display:flex;gap:7px;justify-content:flex-end;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 20px;border-radius:26px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;transition:opacity .3s;z-index:9998;display:flex;align-items:center;gap:6px;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+.dept-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:650px;margin:0 auto;}
+.dc{background:#fff;border:2px solid var(--bdr);border-radius:13px;padding:20px 14px;text-align:center;cursor:pointer;transition:all .22s;}
+.dc:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1);}
+.dc.blood:hover,.dc.blood.sel{border-color:var(--blood);background:#fff5f3;}
+.dc.para:hover,.dc.para.sel{border-color:var(--para);background:#f0fff6;}
+.dc.xray:hover,.dc.xray.sel{border-color:var(--xray);background:#f0f4ff;}
+.dc.screen:hover,.dc.screen.sel{border-color:var(--screen);background:#fdf0ff;}
+.dc .ico{font-size:36px;margin-bottom:8px;}
+.dc h3{font-size:13px;font-weight:900;}
+.dc.blood h3{color:var(--blood);}
+.dc.para h3{color:var(--para);}
+.dc.xray h3{color:var(--xray);}
+.dc.screen h3{color:var(--screen);}
+.dc p{font-size:10px;color:var(--mu);}
+.staff-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--bdr);margin-bottom:6px;background:#fafcff;}
+.staff-dep{font-size:11px;padding:2px 8px;border-radius:10px;color:#fff;font-weight:700;}
+.staff-dep.blood{background:var(--blood);}
+.staff-dep.para{background:var(--para);}
+.staff-dep.xray{background:var(--xray);}
+.staff-dep.screen{background:var(--screen);}
+.ac-wrap{position:relative;}
+.ac-list{position:absolute;top:100%;right:0;left:0;background:#fff;border:1.5px solid var(--pr);border-radius:7px;max-height:180px;overflow-y:auto;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.12);display:none;}
+.ac-item{padding:7px 10px;font-size:12px;cursor:pointer;border-bottom:1px solid var(--bdr);}
+.ac-item:hover{background:#eaf4ff;}
+.prnt-hdr{display:none;}
+.tabs-container{display:flex;flex-wrap:wrap;gap:8px;padding:8px 12px;background:#f0f4f8;border-radius:9px;margin-bottom:10px;border:1px solid var(--bdr);min-height:44px;align-items:center;}
+.tab-item{background:#fff;border:2px solid var(--bdr);border-radius:8px;padding:4px 10px;font-size:12px;font-weight:700;color:var(--mu);cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s;white-space:nowrap;max-width:160px;}
+.tab-item .tab-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;}
+.tab-item.active{border-color:var(--pr);background:var(--pr);color:#fff;}
+.tab-item .close-tab{background:rgba(0,0,0,.15);border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;font-weight:900;flex-shrink:0;}
+.tab-item.active .close-tab{background:rgba(255,255,255,.25);color:#fff;}
+.tab-item .close-tab:hover{background:var(--no);color:#fff;}
+.tab-item .badge{font-size:9px;padding:1px 6px;border-radius:10px;color:#fff;flex-shrink:0;}
+.badge.blood{background:var(--blood);}
+.badge.para{background:var(--para);}
+.badge.xray{background:var(--xray);}
+.badge.screen{background:var(--screen);}
+.tab-item .tab-count{font-size:9px;opacity:.6;}
+#newTabBtn{background:var(--ok);color:#fff;border:none;border-radius:7px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;}
+#newTabBtn:hover{opacity:.9;}
+@media print{.hdr,.no-print,.edit-ban,.sess-ban,.tabs-container{display:none!important;}.sc{display:block!important;padding:0;}body{background:#fff;}.prnt-hdr{display:block!important;text-align:center;padding:8px 0 12px;border-bottom:2px solid #333;margin-bottom:10px;}}
+@media(max-width:640px){.fg.c3,.fg.c4,.fg.c5,.fg.c6{grid-template-columns:1fr 1fr;}.dept-grid{grid-template-columns:1fr 1fr;}.stgrid{grid-template-columns:1fr 1fr;}.tab-item{max-width:120px;font-size:11px;padding:3px 7px;}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-ov" id="loginOv">
+  <div class="login-box">
+    <div style="text-align:center;font-size:48px;margin-bottom:10px">🏥</div>
+    <h2 style="font-size:18px;font-weight:900;color:var(--pr);text-align:center;margin-bottom:4px">القوافل العلاجية</h2>
+    <p style="font-size:12px;color:var(--mu);text-align:center;margin-bottom:20px">نظام المزامنة الفورية - Firebase</p>
+    <div id="lockStatusLogin"></div>
+    <div class="lerr" id="lerr"></div>
+    <div class="fw" style="margin-bottom:10px"><label>اسم المستخدم</label>
+      <select id="l-user-sel"><option value="">-- اختر --</option></select>
+    </div>
+    <div class="fw" style="margin-bottom:12px"><label>كلمة السر</label><input id="l-pass" type="password"></div>
+    <button class="btn pr full" onclick="doLogin()">🚀 دخول</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-logo"><div class="logo-box">🏥</div><div class="hdr-t"><h1>القوافل العلاجية</h1><p>نظام Firebase</p></div></div>
+    <div class="hdr-right"><div id="ubadge" class="ubadge" style="display:none">👤 <span id="uname">—</span></div><div id="dbadge" class="dbadge" style="display:none"></div><button class="btn sm" id="logoutBtn" style="display:none;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="logout()">خروج</button></div>
+  </div>
+  <div class="hdr-nav">
+    <button class="nb active" onclick="gotoSc('setup')" id="nav-setup">⚙️ إعداد القافلة</button>
+    <button class="nb" onclick="gotoSc('entry')" id="nav-entry" disabled>➕ تسجيل مريض</button>
+    <button class="nb" onclick="gotoSc('records')" id="nav-records" disabled>📋 السجلات</button>
+    <button class="nb" onclick="gotoSc('stats')" id="nav-stats" disabled>📊 التقرير العددي</button>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="mov" id="cfMov"><div class="mbox"><h3 id="cfTitle">تأكيد</h3><p id="cfMsg"></p><div class="macts"><button class="btn out" onclick="closeMov('cfMov')">إلغاء</button><button class="btn no" id="cfOk">تأكيد</button></div></div></div>
+
+<!-- PHONE MODAL -->
+<div class="mov" id="phoneMov"><div class="mbox"><h3 style="color:var(--no)">📞 نتيجة غير طبيعية</h3><p>برجاء تسجيل رقم التليفون للتواصل مع الحالة</p><input type="tel" id="phoneModalInput" placeholder="01x..." style="width:100%;padding:8px;border:1.5px solid var(--bdr);border-radius:7px;margin-bottom:12px"><div class="macts"><button class="btn out" onclick="pmSkipPhone()">تخطي وحفظ</button><button class="btn ok" onclick="pmSavePhone()">💾 حفظ مع الرقم</button></div></div></div>
+
+<div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<!-- SETUP -->
+<div class="sc active" id="sc-setup">
+  <div style="max-width:740px;margin:0 auto">
+    <div class="card"><div class="ch pr">🏥 بيانات القافلة</div><div class="cb">
+      <div class="fg c2"><div class="fw"><label>المركز</label><input id="s-center" placeholder="مركز دمنهور"></div><div class="fw"><label>القرية</label><input id="s-village" placeholder="قرية الحاجنية"></div></div>
+      <div class="fg c2"><div class="fw"><label>اليوم الأول</label><input id="s-d1" type="date"></div><div class="fw"><label>اليوم الثاني</label><input id="s-d2" type="date"></div></div>
+      <button class="btn pr full" onclick="saveSetup()">💾 حفظ القافلة</button>
+    </div></div>
+
+    <div class="card" id="staffCard" style="display:none"><div class="ch pr">👥 الموظفون</div><div class="cb">
+      <div class="fg c3"><div class="fw s2"><label>الاسم</label><input id="ns-name"></div><div class="fw"><label>القسم</label><select id="ns-dept"><option value="blood">دم</option><option value="para">طفيليات</option><option value="xray">أشعة</option><option value="screen">افحص</option></select></div><div class="fw"><label>كلمة السر</label><input id="ns-pass"></div></div>
+      <button class="btn ok sm" onclick="addStaff()">➕ إضافة</button>
+      <div id="staffList" style="margin-top:10px"></div>
+    </div></div>
+
+    <div class="card" id="adminCard" style="display:none"><div class="ch pr">⚙️ إدارة القافلة</div><div class="cb">
+      <div id="lockBannerWrap"></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px">
+        <div id="lockBtn" onclick="lockCaravan()" class="btn sm" style="background:#7a1a1a;color:#fff;cursor:pointer;flex:1;text-align:center;padding:8px">🔒 إغلاق القافلة</div>
+        <div id="unlockBtn" onclick="unlockCaravan()" class="btn sm" style="display:none;background:#1a4a6b;color:#fff;cursor:pointer;flex:1;text-align:center;padding:8px">🔓 فتح القافلة</div>
+      </div>
+      <button class="btn sm del" onclick="clearAllRecords()" style="width:100%;padding:10px;background:#b83232;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700">🗑️ مسح كل بيانات القافلة (للبدء من جديد)</button>
+      <p style="font-size:10px;color:var(--mu);margin-top:5px;text-align:center">⚠️ يمسح السجلات والموظفين من Firebase والجهاز، ويحتفظ بإعدادات القافلة فقط</p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ENTRY -->
+<div class="sc" id="sc-entry">
+  <div class="sess-ban" id="sessBan" style="display:none"><div class="sinfo"><div class="sf"><span class="sl">الموظف</span><span class="sv" id="sb-emp">—</span></div><div class="sf"><span class="sl">القافلة</span><span class="sv" id="sb-vil">—</span></div></div></div>
+  
+  <div class="tabs-container" id="tabsContainer">
+    <button id="newTabBtn" onclick="openNewTab()">➕ تبويب جديد</button>
+    <div id="tabsList" style="display:flex;flex-wrap:wrap;gap:6px;flex:1"></div>
+  </div>
+
+  <div class="edit-ban" id="editBan" style="display:none"><span>✏️ تعديل: <span id="editPtN">—</span></span><button class="btn sm del" onclick="closeCurrentTab()">✕ إلغاء</button></div>
+  
+  <div class="dsel"><button class="db active" onclick="setGlobalDay(1)" id="db1">اليوم الأول</button><button class="db" onclick="setGlobalDay(2)" id="db2">اليوم الثاني</button></div>
+  
+  <div id="deptChooser" style="margin-bottom:10px;display:none">
+    <div class="card"><div class="cb"><div class="dept-grid">
+      <div class="dc blood" onclick="openNewTab('blood')"><div class="ico">🩸</div><h3>دم جديد</h3></div>
+      <div class="dc para" onclick="openNewTab('para')"><div class="ico">🔬</div><h3>طفيليات جديد</h3></div>
+      <div class="dc xray" onclick="openNewTab('xray')"><div class="ico">📡</div><h3>أشعة جديد</h3></div>
+      <div class="dc screen" onclick="openNewTab('screen')"><div class="ico">💊</div><h3>افحص جديد</h3></div>
+    </div></div></div></div>
+
+  <!-- BLOOD FORM -->
+  <div id="fBlood" style="display:none">
+    <div class="esec"><div class="esec-h basic">👤 البيانات الأساسية</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>رقم التذكرة <span class="req">*</span></label><input id="bl-ticket" onblur="checkTicket('blood','bl-ticket')"></div>
+        <div class="fw s2"><label>اسم المريض <span class="req">*</span></label><input id="bl-name"></div>
+        <div class="fw"><label>السن <span class="req">*</span></label><input id="bl-age" type="number"></div>
+        <div class="fw"><label>الجنس <span class="req">*</span></label><select id="bl-gender"><option>ذكر</option><option>أنثى</option></select></div>
+        <div class="fw"><label>رقم التليفون</label><input id="bl-phone"></div>
+        <div class="fw"><label>الرقم القومي</label><input id="bl-nid"></div>
+        <div class="fw s2"><label>العيادة المحول منها</label><select id="bl-clinic"><option>باطنة</option><option>قلب</option><option>عظام</option><option>عيون</option><option>نساء</option><option>جراحة</option><option>أطفال</option><option>جلدية</option><option>أنف وأذن</option><option>مسالك</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">🩸 صورة دم كاملة CBC</div><div class="esec-b">
+      <div class="fg c5">
+        <div class="fw"><label>HP <span class="hint">(0.5-1.5)</span></label><input type="number" step="0.1" id="bl-hp"><select id="bl-hp-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>RBC ×10⁶ <span class="hint">(4.2-5.9)</span></label><input type="number" step="0.01" id="bl-rbc"><select id="bl-rbc-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>HCT % <span class="hint">(37-52)</span></label><input type="number" step="0.1" id="bl-hct"><select id="bl-hct-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>WBC ×10³ <span class="hint">(4-11)</span></label><input type="number" step="0.1" id="bl-wbc"><select id="bl-wbc-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>PLT ×10³ <span class="hint">(150-450)</span></label><input type="number" id="bl-plt"><select id="bl-plt-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">🔬 هيموجلوبين وسكر</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>Hb g/dL <span class="hint">(12-16)</span></label><input type="number" step="0.1" id="bl-hb"><select id="bl-hb-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>سكر عشوائي mg/dL <span class="hint">(70-140)</span></label><input type="number" id="bl-rbs" oninput="autoRbsResult('bl')"><select id="bl-rbs-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>HbA1c % <span class="hint">(أقل من 5.7)</span></label><input type="number" step="0.1" id="bl-hba1c"><select id="bl-hba1c-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>فصيلة الدم</label><select id="bl-blood"><option>A</option><option>B</option><option>AB</option><option>O</option></select></div>
+        <div class="fw"><label>عامل Rh</label><select id="bl-rh"><option>موجب</option><option>سالب</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">🫘 وظائف الكلى</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>يوريك أسيد mg/dL <span class="hint">(3.5-7.2)</span></label><input type="number" step="0.1" id="bl-uric"><select id="bl-uric-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>بولينا Urea mg/dL <span class="hint">(15-45)</span></label><input type="number" id="bl-urea"><select id="bl-urea-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>كرياتنين mg/dL <span class="hint">(0.6-1.3)</span></label><input type="number" step="0.01" id="bl-creat"><select id="bl-creat-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">🫀 وظائف الكبد</div><div class="esec-b">
+      <div class="fg c5">
+        <div class="fw"><label>بروتين كلي TP g/dL <span class="hint">(6.4-8.3)</span></label><input type="number" step="0.1" id="bl-tp"><select id="bl-tp-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>ألبيومين g/dL <span class="hint">(3.5-5)</span></label><input type="number" step="0.1" id="bl-alb"><select id="bl-alb-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>بيليروبين mg/dL <span class="hint">(0.1-1.2)</span></label><input type="number" step="0.01" id="bl-bili"><select id="bl-bili-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>SGOT AST U/L <span class="hint">(5-40)</span></label><input type="number" id="bl-sgot"><select id="bl-sgot-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>SGPT ALT U/L <span class="hint">(7-56)</span></label><input type="number" id="bl-sgpt"><select id="bl-sgpt-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">💧 الدهون Lipid Profile</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>LDL mg/dL <span class="hint">(أقل من 130)</span></label><input type="number" id="bl-ldl"><select id="bl-ldl-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>HDL mg/dL <span class="hint">(أكبر من 40)</span></label><input type="number" id="bl-hdl"><select id="bl-hdl-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>دهون ثلاثية TG mg/dL <span class="hint">(أقل من 150)</span></label><input type="number" id="bl-tg"><select id="bl-tg-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>كوليسترول كلي mg/dL <span class="hint">(أقل من 200)</span></label><input type="number" id="bl-chol"><select id="bl-chol-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">🦠 الفيروسات والاختبارات المصلية</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>H.PYLORI</label><select id="bl-hpylori" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>حمل بالدم</label><select id="bl-preg" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>ASOT</label><select id="bl-asot" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">مرتفع</option></select></div>
+        <div class="fw"><label>Rheumatoid RF</label><select id="bl-rf" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>CRP</label><select id="bl-crp" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>HCV فيروس C</label><select id="bl-hcv" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>HBsAg فيروس B</label><select id="bl-hbsag" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>HAV IgG فيروس A</label><select id="bl-hav" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">سلبي</option><option value="غير طبيعي">إيجابي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h blood">⏱️ اختبارات النزف والتجلط</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>سرعة النزف BT دقيقة <span class="hint">(1-6)</span></label><input type="number" step="0.5" id="bl-bt"><select id="bl-bt-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>سرعة التجلط CT دقيقة <span class="hint">(5-15)</span></label><input type="number" step="0.5" id="bl-ct"><select id="bl-ct-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw"><label>سرعة الترسيب ESR mm/hr <span class="hint">(0-20)</span></label><input type="number" id="bl-esr"><select id="bl-esr-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+      </div>
+    </div></div>
+    <div class="eacts"><button class="btn sm del" onclick="closeCurrentTab()">❌ إغلاق التبويب</button><button class="btn ac" onclick="saveCurrentTab('blood')">💾 حفظ</button></div>
+  </div>
+
+  <!-- PARA FORM -->
+  <div id="fPara" style="display:none">
+    <div class="esec"><div class="esec-h basic">👤 البيانات الأساسية</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>رقم التذكرة <span class="req">*</span></label><input id="pa-ticket" onblur="checkTicket('para','pa-ticket')"></div>
+        <div class="fw s2"><label>اسم المريض <span class="req">*</span></label><input id="pa-name"></div>
+        <div class="fw"><label>السن <span class="req">*</span></label><input id="pa-age" type="number"></div>
+        <div class="fw"><label>الجنس <span class="req">*</span></label><select id="pa-gender"><option>ذكر</option><option>أنثى</option></select></div>
+        <div class="fw"><label>رقم التليفون</label><input id="pa-phone"></div>
+        <div class="fw"><label>الرقم القومي</label><input id="pa-nid"></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h para">🧪 تحاليل البول</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>Urates</label><select id="pa-urates" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>Phosphate</label><select id="pa-phosphate" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>Oxalates</label><select id="pa-oxalates" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>حمل (بول)</label><select id="pa-preg" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>سكر (بول)</label><select id="pa-sugar" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>ألبيومين (بول)</label><select id="pa-alb" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>بيليروبين (بول)</label><select id="pa-bili" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>أسيتون (بول)</label><select id="pa-acetone" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h para">🔬 تحليل البراز</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>H.PYLORI (براز)</label><select id="pa-hpylori" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>بلهارسيا</label><select id="pa-bilharzia" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>تريكومونس</label><select id="pa-trichomonas" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>أميبا</label><select id="pa-ameba" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>جيارديا</label><select id="pa-giardia" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>H. nana</label><select id="pa-hnana" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>أكسيورس</label><select id="pa-oxyuris" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+        <div class="fw"><label>أسكارس</label><select id="pa-ascaris" class="rsel" onchange="sR(this)"><option value="">لم يُفحص</option><option value="غير طبيعي">إيجابي</option></select></div>
+      </div>
+    </div></div>
+    <div class="eacts"><button class="btn sm del" onclick="closeCurrentTab()">❌ إغلاق التبويب</button><button class="btn ac" onclick="saveCurrentTab('para')">💾 حفظ</button></div>
+  </div>
+
+  <!-- XRAY FORM -->
+  <div id="fXray" style="display:none">
+    <div class="esec"><div class="esec-h basic">👤 البيانات الأساسية</div><div class="esec-b">
+      <div class="fg c4">
+        <div class="fw"><label>رقم التذكرة <span class="req">*</span></label><input id="xr-ticket" onblur="checkTicket('xray','xr-ticket')"></div>
+        <div class="fw s2"><label>اسم المريض <span class="req">*</span></label><input id="xr-name"></div>
+        <div class="fw"><label>السن <span class="req">*</span></label><input id="xr-age" type="number"></div>
+        <div class="fw"><label>الجنس <span class="req">*</span></label><select id="xr-gender"><option>ذكر</option><option>أنثى</option></select></div>
+        <div class="fw"><label>رقم التليفون</label><input id="xr-phone"></div>
+        <div class="fw"><label>الرقم القومي</label><input id="xr-nid"></div>
+        <div class="fw s2"><label>العيادة المحول منها</label><select id="xr-clinic"><option>باطنة</option><option>قلب</option><option>عظام</option><option>عيون</option><option>نساء</option><option>جراحة</option><option>أطفال</option><option>جلدية</option><option>أنف وأذن</option><option>مسالك</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h xray">📡 بيانات الفحص الإشعاعي</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>كود الفحص</label><input id="xr-code"></div>
+        <div class="fw s2"><label>اسم الفحص</label><input id="xr-ename"></div>
+        <div class="fw"><label>نتيجة الفحص</label><select id="xr-result" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">غير طبيعي</option></select></div>
+        <div class="fw s2"><label>ملاحظات / سبب الإعادة</label><input id="xr-remark"></div>
+      </div>
+    </div></div>
+    <div class="eacts"><button class="btn sm del" onclick="closeCurrentTab()">❌ إغلاق التبويب</button><button class="btn ac" onclick="saveCurrentTab('xray')">💾 حفظ</button></div>
+  </div>
+
+  <!-- SCREEN FORM -->
+  <div id="fScreen" style="display:none">
+    <div class="esec"><div class="esec-h basic">👤 البيانات الأساسية</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>رقم التذكرة <span class="req">*</span></label><input id="sc-ticket" onblur="checkTicket('screen','sc-ticket')"></div>
+        <div class="fw s2"><label>اسم المريض <span class="req">*</span></label><input id="sc-name"></div>
+        <div class="fw"><label>السن <span class="req">*</span></label><input id="sc-age" type="number"></div>
+        <div class="fw"><label>الجنس <span class="req">*</span></label><select id="sc-gender"><option>ذكر</option><option>أنثى</option></select></div>
+        <div class="fw"><label>رقم التليفون</label><input id="sc-phone"></div>
+        <div class="fw"><label>الرقم القومي</label><input id="sc-nid"></div>
+        <div class="fw"><label>تدخين</label><select id="sc-smoke"><option value="">--</option><option>مدخن</option><option>غير مدخن</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h screen">📋 التاريخ المرضي</div><div class="esec-b">
+      <div class="fg c2">
+        <div class="fw"><label>تاريخ مرضي — سكر</label><select id="sc-hx-sugar" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">لا يوجد</option><option value="غير طبيعي">يوجد</option></select></div>
+        <div class="fw"><label>تاريخ مرضي — ضغط</label><select id="sc-hx-bp" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">لا يوجد</option><option value="غير طبيعي">يوجد</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h screen">📊 القياسات والنتائج</div><div class="esec-b">
+      <div class="fg c3">
+        <div class="fw"><label>ضغط الدم mmHg <span class="hint">(طبيعي أقل من 120/80)</span></label>
+          <div style="display:flex;gap:5px"><input type="number" id="sc-bp-sys" placeholder="انقباضي" oninput="autoBpResult()" style="width:50%"><input type="number" id="sc-bp-dia" placeholder="انبساطي" oninput="autoBpResult()" style="width:50%"></div>
+          <select id="sc-bp-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">مرتفع</option></select>
+        </div>
+        <div class="fw"><label>سكر عشوائي mg/dL <span class="hint">(70-140)</span></label><input type="number" id="sc-rbs" oninput="autoRbsResult('sc')"><select id="sc-rbs-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">مرتفع</option></select></div>
+        <div class="fw"><label>سكر تراكمي HbA1c % <span class="hint">(أقل من 5.7)</span></label><input type="number" step="0.1" id="sc-hba1c"><select id="sc-hba1c-r" class="rsel" onchange="sR(this)"><option value="">--</option><option value="طبيعي">طبيعي</option><option value="غير طبيعي">مرتفع</option></select></div>
+      </div>
+    </div></div>
+    <div class="esec"><div class="esec-h screen">🔄 الإجراء المتخذ</div><div class="esec-b">
+      <div class="fg c2">
+        <div class="fw"><label>الإجراء</label><select id="sc-action"><option value="">--</option><option>علاج</option><option>تحويل داخلي لعيادة</option><option>تحويل خارجي لمستشفى</option></select></div>
+        <div class="fw"><label>تحويل لعيادة</label><select id="sc-refer"><option value="">-- لا يوجد --</option><option>باطنة</option><option>قلب</option><option>غدد صماء</option><option>أطفال</option><option>عظام</option></select></div>
+      </div>
+    </div></div>
+    <div class="eacts"><button class="btn sm del" onclick="closeCurrentTab()">❌ إغلاق التبويب</button><button class="btn ac" onclick="saveCurrentTab('screen')">💾 حفظ</button></div>
+  </div>
+</div>
+
+<!-- RECORDS -->
+<div class="sc" id="sc-records">
+  <div class="rh"><h3 id="recTitle">📋 السجلات</h3><span class="rcnt" id="recCnt">0</span></div>
+  <div class="sbar"><input type="text" id="srch" placeholder="بحث..." oninput="renderRec()"></div>
+  <div id="recWrap" class="tbl-wrap"></div>
+</div>
+
+<!-- STATS -->
+<div class="sc" id="sc-stats"><div id="statsWrap"></div></div>
+
+<script>
+// =============== CONSTANTS ===============
+const DNAMES={blood:'معمل الدم',para:'معمل الطفيليات',xray:'الأشعة',screen:'افحص واطمن'};
+const DICONS={blood:'🩸',para:'🔬',xray:'📡',screen:'💊'};
+const DEPS=['blood','para','xray','screen'];
+
+// =============== STATE ===============
+let session=JSON.parse(localStorage.getItem('sess')||'null');
+let records=JSON.parse(localStorage.getItem('recs')||'[]');
+let staff=JSON.parse(localStorage.getItem('staff')||'[]');
+let adminPass=localStorage.getItem('apass')||'1234';
+let locked=localStorage.getItem('locked')==='1';
+let curUser=null, curDay=1;
+
+// =============== FIREBASE ===============
+let fbUrl = 'https://kawafel-default-rtdb.firebaseio.com';
+let dbRef=null;
+
+function initFirebase(url){
+  try { firebase.initializeApp({databaseURL: url}); dbRef = firebase.database().ref(); return true; }
+  catch(e){ return false; }
+}
+initFirebase(fbUrl);
+
+// =============== TAB SYSTEM ===============
+let tabs = {};
+let activeTabId = null;
+let tabCounter = 0;
+let pendingPhone = null;
+
+function getFormIds(dept){
+  let px={blood:'bl',para:'pa',xray:'xr',screen:'sc'}[dept];
+  let ids = [px+'-ticket', px+'-name', px+'-age', px+'-gender', px+'-phone', px+'-nid'];
+  if(dept==='blood'){
+    ids = ids.concat(['bl-clinic','bl-hp','bl-hp-r','bl-rbc','bl-rbc-r','bl-hct','bl-hct-r','bl-wbc','bl-wbc-r','bl-plt','bl-plt-r',
+      'bl-hb','bl-hb-r','bl-rbs','bl-rbs-r','bl-hba1c','bl-hba1c-r','bl-blood','bl-rh',
+      'bl-uric','bl-uric-r','bl-urea','bl-urea-r','bl-creat','bl-creat-r',
+      'bl-tp','bl-tp-r','bl-alb','bl-alb-r','bl-bili','bl-bili-r','bl-sgot','bl-sgot-r','bl-sgpt','bl-sgpt-r',
+      'bl-ldl','bl-ldl-r','bl-hdl','bl-hdl-r','bl-tg','bl-tg-r','bl-chol','bl-chol-r',
+      'bl-hpylori','bl-preg','bl-asot','bl-rf','bl-crp','bl-hcv','bl-hbsag','bl-hav',
+      'bl-bt','bl-bt-r','bl-ct','bl-ct-r','bl-esr','bl-esr-r']);
+  } else if(dept==='para'){
+    ids = ids.concat(['pa-urates','pa-phosphate','pa-oxalates','pa-preg','pa-sugar','pa-alb','pa-bili','pa-acetone',
+      'pa-hpylori','pa-bilharzia','pa-trichomonas','pa-ameba','pa-giardia','pa-hnana','pa-oxyuris','pa-ascaris']);
+  } else if(dept==='xray'){
+    ids = ids.concat(['xr-clinic','xr-code','xr-ename','xr-result','xr-remark']);
+  } else if(dept==='screen'){
+    ids = ids.concat(['sc-smoke','sc-hx-sugar','sc-hx-bp','sc-bp-sys','sc-bp-dia','sc-bp-r','sc-rbs','sc-rbs-r','sc-hba1c','sc-hba1c-r','sc-action','sc-refer']);
+  }
+  return ids;
+}
+
+function saveTabData(tabId){
+  let tab = tabs[tabId];
+  if(!tab) return;
+  let data = {};
+  let ids = getFormIds(tab.dept);
+  ids.forEach(id => {
+    let el = document.getElementById(id);
+    if(el) data[id] = el.value;
+  });
+  tab.data = data;
+  let name = data[tab.dept.charAt(0)+'a-name'] || data[tab.dept.charAt(0)+'r-name'] || 'جديد';
+  tab.label = (name && name !== 'جديد') ? name : (tab.editId ? 'تعديل' : 'جديد');
+  renderTabs();
+}
+
+function applyTabData(tabId){
+  let tab = tabs[tabId];
+  if(!tab) return;
+  let ids = getFormIds(tab.dept);
+  ids.forEach(id => {
+    let el = document.getElementById(id);
+    if(el && tab.data && tab.data[id] !== undefined) el.value = tab.data[id];
+    else if(el) el.value = '';
+  });
+  // Show the right form
+  DEPS.forEach(d => {
+    document.getElementById('f'+d.charAt(0).toUpperCase()+d.slice(1)).style.display = (d===tab.dept)?'block':'none';
+  });
+  // Update day
+  curDay = tab.day || 1;
+  document.getElementById('db1').classList.toggle('active', curDay===1);
+  document.getElementById('db2').classList.toggle('active', curDay===2);
+  // Edit banner
+  let eb = document.getElementById('editBan');
+  if(tab.editId){
+    eb.style.display = 'flex';
+    document.getElementById('editPtN').textContent = tab.data['bl-name'] || tab.data['pa-name'] || tab.data['xr-name'] || tab.data['sc-name'] || 'مريض';
+  } else {
+    eb.style.display = 'none';
+  }
+}
+
+function renderTabs(){
+  let container = document.getElementById('tabsList');
+  if(!container) return;
+  let html = '';
+  for(let id in tabs){
+    let t = tabs[id];
+    let isActive = (id === activeTabId);
+    let badgeClass = t.dept;
+    let icon = DICONS[t.dept] || '';
+    let label = t.label || 'جديد';
+    if(t.editId) label = '✏️ '+label;
+    html += `<div class="tab-item ${isActive?'active':''}" onclick="switchTab('${id}')">
+      <span class="badge ${badgeClass}">${icon}</span>
+      <span class="tab-name">${label}</span>
+      <span class="close-tab" onclick="event.stopPropagation();closeTab('${id}')">✕</span>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+function openNewTab(dept=null, editRec=null){
+  if(activeTabId) saveTabData(activeTabId);
+  
+  // Permissions
+  if(curUser && curUser.role !== 'admin'){
+    if(dept && dept !== curUser.role){
+      showToast('⚠️ ليس لديك صلاحية لهذا القسم', false);
+      return;
+    }
+    dept = curUser.role;
+  }
+  if(!dept){
+    if(curUser && curUser.role !== 'admin') dept = curUser.role;
+    else { showToast('اختر القسم من الأزرار', true); return; }
+  }
+  
+  let id = 'tab_' + (++tabCounter);
+  let day = curDay;
+  let editId = editRec ? editRec.id : null;
+  let label = editRec ? editRec.name : 'جديد';
+  let data = {};
+  if(editRec){
+    let ids = getFormIds(dept);
+    ids.forEach(fid => {
+      let key = fid.split('-')[1];
+      let val = editRec[key] || editRec[fid] || '';
+      data[fid] = val;
+    });
+    label = editRec.name || 'تعديل';
+  }
+  
+  tabs[id] = { dept, day, editId, data, label };
+  activeTabId = id;
+  applyTabData(id);
+  renderTabs();
+  gotoSc('entry');
+}
+
+function switchTab(tabId){
+  if(activeTabId) saveTabData(activeTabId);
+  activeTabId = tabId;
+  applyTabData(tabId);
+  renderTabs();
+}
+
+function closeTab(tabId){
+  if(activeTabId === tabId){
+    let keys = Object.keys(tabs);
+    let idx = keys.indexOf(tabId);
+    let nextId = null;
+    if(keys.length > 1){
+      if(idx < keys.length-1) nextId = keys[idx+1];
+      else nextId = keys[idx-1];
+    }
+    delete tabs[tabId];
+    if(nextId){
+      activeTabId = nextId;
+      applyTabData(nextId);
+    } else {
+      activeTabId = null;
+      DEPS.forEach(d => document.getElementById('f'+d.charAt(0).toUpperCase()+d.slice(1)).style.display='none');
+      document.getElementById('editBan').style.display='none';
+    }
+    renderTabs();
+  } else {
+    delete tabs[tabId];
+    renderTabs();
+  }
+}
+
+function closeCurrentTab(){
+  if(activeTabId) closeTab(activeTabId);
+  else showToast('لا يوجد تبويب مفتوح', false);
+}
+
+// =============== CHECK TICKET ===============
+function checkTicket(dept, ticketId) {
+    let ticket = document.getElementById(ticketId).value.trim();
+    if (!ticket) return;
+    let existing = records.find(r => r.ticket === ticket && r.dept === dept && r.id !== (tabs[activeTabId]?.editId || null));
+    if (existing) {
+        let msg = `⚠️ رقم التذكرة "${ticket}" مسجل من قبل للحالة: "${existing.name}"\n\nهل تريد فتح بياناتها للتعديل؟`;
+        if (confirm(msg)) {
+            if (activeTabId) closeTab(activeTabId);
+            openNewTab(dept, existing);
+        } else {
+            document.getElementById(ticketId).value = '';
+            document.getElementById(ticketId).focus();
+            showToast('⚠️ يرجى إدخال رقم تذكرة آخر', false);
+        }
+    }
+}
+
+// =============== PHONE MODAL (FIXED) ===============
+function pmSavePhone() {
+    document.getElementById('phoneMov').style.display = 'none';
+    if (!pendingPhone) return;
+    let ps = pendingPhone;
+    let phone = document.getElementById('phoneModalInput').value.trim();
+    ps.r.phone = phone;
+    let el = document.getElementById(ps.phoneFieldId);
+    if (el) el.value = phone;
+    doFinalSave(ps.r);
+    pendingPhone = null;
+    showToast('✅ تم الحفظ مع الرقم: ' + phone, true);
+}
+
+function pmSkipPhone() {
+    document.getElementById('phoneMov').style.display = 'none';
+    if (!pendingPhone) return;
+    let ps = pendingPhone;
+    doFinalSave(ps.r);
+    pendingPhone = null;
+    showToast('✅ تم التخطي والحفظ', true);
+}
+
+// =============== SAVE FUNCTIONS ===============
+function hasAbnormal(r) {
+    let keys = Object.keys(r).filter(k => k.endsWith('R') || k === 'result');
+    return keys.some(k => r[k] === 'غير طبيعي');
+}
+
+function doFinalSave(r) {
+    if (r.id) {
+        let idx = records.findIndex(x => x.id === r.id);
+        if (idx >= 0) records[idx] = r;
+        else records.push(r);
+    } else {
+        records.push(r);
+    }
+    localStorage.setItem('recs', JSON.stringify(records));
+    // Sync to Firebase
+    if(dbRef) dbRef.child('records').child(r.id).set(r);
+    if (activeTabId) closeTab(activeTabId);
+    renderRec();
+    buildStats();
+}
+
+function saveCurrentTab(dept) {
+    if (!activeTabId) { showToast('افتح تبويب أولاً', false); return; }
+    saveTabData(activeTabId);
+    let tab = tabs[activeTabId];
+    let data = tab.data;
+    let editId = tab.editId;
+    
+    let px = {blood:'bl',para:'pa',xray:'xr',screen:'sc'}[dept];
+    let name = data[px+'-name'] || '';
+    let age = data[px+'-age'] || '';
+    let gender = data[px+'-gender'] || '';
+    let ticket = data[px+'-ticket'] || '';
+    let phone = data[px+'-phone'] || '';
+    let nid = data[px+'-nid'] || '';
+    
+    if (!ticket || !name || !age || !gender) {
+        showToast('⚠️ مطلوب: التذكرة، الاسم، السن، الجنس', false);
+        return;
+    }
+    
+    let r = { id: editId || Date.now(), dept, day: curDay, emp: curUser?.name, savedAt: new Date().toISOString(), name, age, gender, ticket, phone, nid };
+    
+    let ids = getFormIds(dept);
+    ids.forEach(fid => {
+        let key = fid.split('-')[1];
+        if (['ticket','name','age','gender','phone','nid'].includes(key)) return;
+        if (fid.includes('clinic')) { r.clinic = data[fid]; return; }
+        r[key] = data[fid] || '';
+    });
+    
+    // Phone required for abnormal screen cases
+    if (dept === 'screen' && hasAbnormal(r) && !phone) {
+        pendingPhone = { r: r, dept: dept, phoneFieldId: 'sc-phone' };
+        document.getElementById('phoneModalInput').value = '';
+        document.getElementById('phoneMov').style.display = 'flex';
+        setTimeout(() => document.getElementById('phoneModalInput').focus(), 200);
+        return;
+    }
+    
+    doFinalSave(r);
+}
+
+// =============== UI HELPERS ===============
+function autoBpResult(){
+  let sys=parseInt(document.getElementById('sc-bp-sys')?.value)||0;
+  let dia=parseInt(document.getElementById('sc-bp-dia')?.value)||0;
+  if(!sys&&!dia) return;
+  let sel=document.getElementById('sc-bp-r');
+  sel.value = (sys>=140 || dia>=90) ? 'غير طبيعي' : 'طبيعي';
+  sR(sel);
+}
+function autoRbsResult(px){
+  let val=parseFloat(document.getElementById(px+'-rbs')?.value)||0;
+  if(!val) return;
+  let sel=document.getElementById(px+'-rbs-r');
+  if(!sel) return;
+  sel.value = val>200 ? 'غير طبيعي' : (val>=70 ? 'طبيعي' : 'غير طبيعي');
+  sR(sel);
+}
+function sR(el){
+  if(!el) return;
+  el.classList.remove('res-pos','res-neg');
+  if(el.value==='غير طبيعي') el.classList.add('res-pos');
+  else if(el.value==='طبيعي') el.classList.add('res-neg');
+}
+function setGlobalDay(d){ curDay=d; document.getElementById('db1').classList.toggle('active',d===1); document.getElementById('db2').classList.toggle('active',d===2); if(activeTabId){ tabs[activeTabId].day=d; saveTabData(activeTabId); } }
+
+// =============== STAFF ===============
+function addStaff(){
+  let n=document.getElementById('ns-name').value.trim();
+  let d=document.getElementById('ns-dept').value;
+  let p=document.getElementById('ns-pass').value.trim();
+  if(!n||!d||!p){ showToast('⚠️ املأ الكل',false); return; }
+  if(staff.find(s=>s.name===n)){ showToast('⚠️ موجود',false); return; }
+  staff.push({name:n, dept:d, pass:p});
+  localStorage.setItem('staff', JSON.stringify(staff));
+  renderStaffList(); populateLoginUsers();
+  if(dbRef) dbRef.child('staff').set(staff);
+  showToast('✅ تم');
+}
+function removeStaff(i){
+  if(!confirm('حذف؟')) return;
+  staff.splice(i,1);
+  localStorage.setItem('staff', JSON.stringify(staff));
+  renderStaffList(); populateLoginUsers();
+  if(dbRef) dbRef.child('staff').set(staff);
+}
+function renderStaffList(){
+  let c=document.getElementById('staffList');
+  if(!staff.length){ c.innerHTML='<p style="color:var(--mu)">لا يوجد</p>'; return; }
+  c.innerHTML=staff.map((s,i)=>`
+    <div class="staff-row">
+      <span>${s.name}</span>
+      <span class="staff-dep ${s.dept}">${DNAMES[s.dept]}</span>
+      <button class="btn sm del" onclick="removeStaff(${i})">🗑️</button>
+    </div>
+  `).join('');
+}
+
+// =============== SETUP & LOGIN ===============
+function saveSetup(){
+  let c=document.getElementById('s-center').value.trim();
+  let v=document.getElementById('s-village').value.trim();
+  let d1=document.getElementById('s-d1').value;
+  if(!c||!v||!d1){ showToast('⚠️ املأ الحقول',false); return; }
+  session={center:c, village:v, day1:d1, day2:document.getElementById('s-d2').value};
+  localStorage.setItem('sess', JSON.stringify(session));
+  if(dbRef) dbRef.child('config').set({session});
+  applySessUI(); showToast('✅ حفظ');
+}
+function populateLoginUsers(){
+  let sel=document.getElementById('l-user-sel');
+  let cur=sel.value||'';
+  sel.innerHTML='<option value="">-- اختر --</option><option value="admin">⚙️ المدير</option>'+
+    staff.map(s=>`<option value="${s.name}">${DICONS[s.dept]||''} ${s.name}</option>`).join('');
+  if(cur) sel.value=cur;
+}
+function doLogin(){
+  let u=document.getElementById('l-user-sel').value.trim();
+  let p=document.getElementById('l-pass').value.trim();
+  if(!u||!p){ showToast('⚠️ أدخل البيانات',false); return; }
+  if(u==='admin' && p===adminPass){ curUser={name:'المدير',role:'admin'}; }
+  else {
+    if(locked){ showToast('🔒 القافلة مغلقة',false); return; }
+    let emp=staff.find(s=>s.name===u && s.pass===p);
+    if(!emp){ showToast('⚠️ كلمة سر خاطئة',false); return; }
+    curUser={name:emp.name, role:emp.dept};
+  }
+  document.getElementById('loginOv').style.display='none';
+  applyUser();
+}
+function logout(){ curUser=null; document.getElementById('loginOv').style.display='flex'; gotoSc('setup'); }
+function applyUser(){
+  try{
+    var isAdmin=(curUser.role==='admin');
+    document.getElementById('ubadge').style.display='flex';
+    document.getElementById('uname').textContent=curUser.name;
+    document.getElementById('logoutBtn').style.display='flex';
+    ['entry','records','stats'].forEach(function(id){
+      var b=document.getElementById('nav-'+id);
+      if(b) b.removeAttribute('disabled');
+    });
+    if(isAdmin){
+      document.getElementById('staffCard').style.display='block';
+      document.getElementById('adminCard').style.display='block';
+      document.getElementById('deptChooser').style.display='block';
+      renderStaffList(); updateLockUI();
+    }else{
+      document.getElementById('staffCard').style.display='none';
+      document.getElementById('adminCard').style.display='none';
+      document.getElementById('deptChooser').style.display='none';
+      var db=document.getElementById('dbadge');
+      db.className='dbadge '+curUser.role;
+      db.textContent=(DICONS[curUser.role]||'👤')+' '+(DNAMES[curUser.role]||curUser.role);
+      db.style.display='flex';
+    }
+    if(session){ applySessUI(); gotoSc('entry'); }
+    else{ gotoSc('setup'); }
+    showToast('✅ مرحباً '+curUser.name);
+  }catch(e){
+    console.error('applyUser error:',e);
+    showToast('✅ تم الدخول');
+  }
+}
+function applySessUI(){
+  if(!session) return;
+  document.getElementById('sessBan').style.display='flex';
+  document.getElementById('sb-emp').textContent=curUser.name;
+  document.getElementById('sb-vil').textContent=session.village||'';
+}
+function gotoSc(id){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sc-'+id).classList.add('active');
+  let nav=document.getElementById('nav-'+id);
+  if(nav) nav.classList.add('active');
+  if(id==='records') renderRec();
+  if(id==='stats') buildStats();
+}
+
+// =============== LOCK ===============
+function lockCaravan(){ locked=true; localStorage.setItem('locked','1'); updateLockUI(); if(dbRef) dbRef.child('config').update({locked:true}); showToast('🔒 مغلقة'); }
+function unlockCaravan(){ locked=false; localStorage.setItem('locked','0'); updateLockUI(); if(dbRef) dbRef.child('config').update({locked:false}); showToast('🔓 مفتوحة'); }
+function updateLockUI(){
+  let l=document.getElementById('lockBtn'), u=document.getElementById('unlockBtn'), b=document.getElementById('lockBannerWrap');
+  if(locked){ l.style.display='none'; u.style.display='block'; b.innerHTML='<div style="background:#fff0f0;padding:8px;color:#7a1a1a;text-align:center">🔒 مغلقة</div>'; }
+  else { l.style.display='block'; u.style.display='none'; b.innerHTML='<div style="background:#f0fff4;padding:8px;color:#1a5a2a;text-align:center">✅ مفتوحة</div>'; }
+}
+function clearAllRecords(){
+  if(!confirm('⚠️ هل أنت متأكد من مسح كل البيانات؟')) return;
+  records=[]; staff=[];
+  localStorage.setItem('recs','[]'); localStorage.setItem('staff','[]');
+  if(dbRef){ dbRef.child('records').set({}); dbRef.child('staff').set({}); }
+  renderRec(); buildStats(); renderStaffList(); populateLoginUsers();
+  showToast('🗑️ تم مسح كل البيانات');
+}
+
+// =============== RECORDS (FULL DETAILS) ===============
+function renderRec(){
+  let w=document.getElementById('recWrap');
+  let cnt=document.getElementById('recCnt');
+  let filtered = records;
+  if(curUser && curUser.role !== 'admin'){
+    filtered = records.filter(r => r.dept === curUser.role);
+  }
+  cnt.textContent = filtered.length;
+  
+  if(!filtered.length){
+    w.innerHTML='<div style="padding:30px;text-align:center">لا توجد سجلات</div>';
+    return;
+  }
+  
+  // Determine which department to show columns for
+  let dept = filtered[0].dept;
+  let headers = [];
+  let rowFn = (r) => [];
+  
+  if(dept === 'blood'){
+    headers = ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','الموظف','العيادة','Hb','نتيجة','سكر','نتيجة','فصيلة','HP','نتيجة','RBC','نتيجة','HCT','نتيجة','WBC','نتيجة','PLT','نتيجة','يوريك','نتيجة','بولينا','نتيجة','كرياتنين','نتيجة','TP','نتيجة','ألبيومين','نتيجة','بيليروبين','نتيجة','SGOT','نتيجة','SGPT','نتيجة','LDL','نتيجة','HDL','نتيجة','TG','نتيجة','كوليسترول','نتيجة','H.Pylori','حمل','ASOT','RF','CRP','HCV','HBsAg','HAV','BT','نتيجة','CT','نتيجة','ESR','نتيجة','إجراءات'];
+    rowFn = (r) => [
+      r.clinic||'', r.hb||'', r.hbR||'', r.rbs||'', r.rbsR||'', r.blood||'',
+      r.hp||'', r.hpR||'', r.rbc||'', r.rbcR||'', r.hct||'', r.hctR||'', r.wbc||'', r.wbcR||'', r.plt||'', r.pltR||'',
+      r.uric||'', r.uricR||'', r.urea||'', r.ureaR||'', r.creat||'', r.creatR||'',
+      r.tp||'', r.tpR||'', r.alb||'', r.albR||'', r.bili||'', r.biliR||'', r.sgot||'', r.sgotR||'', r.sgpt||'', r.sgptR||'',
+      r.ldl||'', r.ldlR||'', r.hdl||'', r.hdlR||'', r.tg||'', r.tgR||'', r.chol||'', r.cholR||'',
+      r.hpylori||'', r.preg||'', r.asot||'', r.rf||'', r.crp||'', r.hcv||'', r.hbsag||'', r.hav||'',
+      r.bt||'', r.btR||'', r.ct||'', r.ctR||'', r.esr||'', r.esrR||''
+    ];
+  } else if(dept === 'para'){
+    headers = ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','الموظف','Urates','Phosphate','Oxalates','حمل بول','سكر بول','ألبيومين بول','بيليروبين بول','أسيتون','H.Pylori','بلهارسيا','تريكومونس','أميبا','جيارديا','H.nana','أكسيورس','أسكارس','إجراءات'];
+    rowFn = (r) => [
+      r.urates||'', r.phosphate||'', r.oxalates||'', r.preg||'', r.sugar||'', r.palb||'', r.pbili||'', r.acetone||'',
+      r.hpylori||'', r.bilharzia||'', r.trichomonas||'', r.ameba||'', r.giardia||'', r.hnana||'', r.oxyuris||'', r.ascaris||''
+    ];
+  } else if(dept === 'xray'){
+    headers = ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','الموظف','العيادة','الكود','اسم الفحص','النتيجة','ملاحظات','إجراءات'];
+    rowFn = (r) => [r.clinic||'', r.code||'', r.examname||'', r.result||'', r.remark||''];
+  } else if(dept === 'screen'){
+    headers = ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','الموظف','تدخين','تاريخ سكر','تاريخ ضغط','ضغط','نتيجة','سكر','نتيجة','HbA1c','نتيجة','الإجراء','تحويل','إجراءات'];
+    rowFn = (r) => [
+      r.smoke||'', r.hxSugar||'', r.hxBp||'', r.bp||'', r.bpR||'', r.rbs||'', r.rbsR||'', r.hba1c||'', r.hba1cR||'', r.action||'', r.refer||''
+    ];
+  }
+  
+  let html = '<table><thead class="'+dept+'-h"><tr>';
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += '</tr></thead><tbody>';
+  filtered.forEach((r,i) => {
+    let base = [i+1, r.name, r.age, r.gender, r.ticket, r.phone||'', r.day===1?'أول':'ثاني', r.emp||''];
+    let extras = rowFn(r);
+    let actions = `<div class="tacts"><button class="btn sm edit" onclick="editRec(${r.id})">✏️</button><button class="btn sm del" onclick="delRec(${r.id})">🗑️</button></div>`;
+    html += '<tr>';
+    base.concat(extras).forEach(val => html += `<td>${val||'—'}</td>`);
+    html += `<td>${actions}</td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  w.innerHTML = html;
+}
+
+function editRec(id){
+  let r = records.find(x => String(x.id) === String(id));
+  if(!r) return;
+  if(curUser && curUser.role !== 'admin' && r.dept !== curUser.role){
+    showToast('⚠️ ليس لديك صلاحية', false);
+    return;
+  }
+  if(activeTabId) saveTabData(activeTabId);
+  openNewTab(r.dept, r);
+}
+function delRec(id){
+  let r = records.find(x => String(x.id) === String(id));
+  if(!r) return;
+  if(curUser && curUser.role !== 'admin' && r.dept !== curUser.role){
+    showToast('⚠️ ليس لديك صلاحية', false);
+    return;
+  }
+  if(!confirm('حذف؟')) return;
+  records = records.filter(x => String(x.id) !== String(id));
+  localStorage.setItem('recs', JSON.stringify(records));
+  if(dbRef) dbRef.child('records').child(id).remove();
+  renderRec();
+}
+
+// =============== STATS (DETAILED) ===============
+function buildStats(){
+  let html = '<div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap">';
+  html += '<button class="btn ok" onclick="sendWhatsAppReport()" style="background:#25D366;color:#fff;padding:10px 24px;border-radius:10px;font-weight:700;cursor:pointer">📱 تقرير نصي (واتساب)</button>';
+  html += '<button class="btn pr" onclick="exportExcel()" style="background:#1a7a4a;color:#fff;padding:10px 24px;border-radius:10px;font-weight:700;cursor:pointer">📊 تحميل Excel مفصل</button>';
+  html += '</div>';
+  
+  let filtered = records;
+  if(curUser && curUser.role !== 'admin'){
+    filtered = records.filter(r => r.dept === curUser.role);
+  }
+  
+  // Summary cards
+  let b = filtered.filter(r=>r.dept==='blood');
+  let p = filtered.filter(r=>r.dept==='para');
+  let x = filtered.filter(r=>r.dept==='xray');
+  let s = filtered.filter(r=>r.dept==='screen');
+  html += `<div class="stgrid">
+    <div class="stc"><div class="n">${filtered.length}</div><div class="l">الإجمالي</div></div>
+    <div class="stc" style="border-top:3px solid var(--blood)"><div class="n" style="color:var(--blood)">${b.length}</div><div class="l">معمل الدم</div></div>
+    <div class="stc" style="border-top:3px solid var(--para)"><div class="n" style="color:var(--para)">${p.length}</div><div class="l">الطفيليات</div></div>
+    <div class="stc" style="border-top:3px solid var(--xray)"><div class="n" style="color:var(--xray)">${x.length}</div><div class="l">الأشعة</div></div>
+    <div class="stc" style="border-top:3px solid var(--screen)"><div class="n" style="color:var(--screen)">${s.length}</div><div class="l">افحص واطمن</div></div>
+  </div>`;
+  
+  // Detailed stats per department
+  if(b.length) html += buildBloodStats(b);
+  if(p.length) html += buildParaStats(p);
+  if(x.length) html += buildXrayStats(x);
+  if(s.length) html += buildScreenStats(s);
+  
+  document.getElementById('statsWrap').innerHTML = html;
+}
+
+function buildBloodStats(arr){
+  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
+  let fields = [
+    {l:'Hb', v:'hb', r:'hbR'}, {l:'RBS', v:'rbs', r:'rbsR'}, {l:'HP', v:'hp', r:'hpR'},
+    {l:'RBC', v:'rbc', r:'rbcR'}, {l:'HCT', v:'hct', r:'hctR'}, {l:'WBC', v:'wbc', r:'wbcR'},
+    {l:'PLT', v:'plt', r:'pltR'}, {l:'يوريك', v:'uric', r:'uricR'}, {l:'بولينا', v:'urea', r:'ureaR'},
+    {l:'كرياتنين', v:'creat', r:'creatR'}, {l:'TP', v:'tp', r:'tpR'}, {l:'ألبيومين', v:'alb', r:'albR'},
+    {l:'بيليروبين', v:'bili', r:'biliR'}, {l:'SGOT', v:'sgot', r:'sgotR'}, {l:'SGPT', v:'sgpt', r:'sgptR'},
+    {l:'LDL', v:'ldl', r:'ldlR'}, {l:'HDL', v:'hdl', r:'hdlR'}, {l:'TG', v:'tg', r:'tgR'},
+    {l:'كوليسترول', v:'chol', r:'cholR'}
+  ];
+  let rows = '';
+  fields.forEach(f => {
+    let n1 = d1.filter(r=>r[f.r]==='طبيعي').length;
+    let p1 = d1.filter(r=>r[f.r]==='غير طبيعي').length;
+    let n2 = d2.filter(r=>r[f.r]==='طبيعي').length;
+    let p2 = d2.filter(r=>r[f.r]==='غير طبيعي').length;
+    if(!n1&&!p1&&!n2&&!p2) return;
+    rows += `<tr><td style="text-align:right">${f.l}</td>
+      <td>${n1||'—'}</td><td style="color:var(--no)">${p1||'—'}</td>
+      <td>${n2||'—'}</td><td style="color:var(--no)">${p2||'—'}</td>
+      <td>${n1+n2||'—'}</td><td style="color:var(--no)">${p1+p2||'—'}</td></tr>`;
+  });
+  return `<div class="card"><div class="ch blood">🩸 معمل الدم</div><div class="cb">
+    <table class="rpt-tbl"><thead><tr><th>التحليل</th><th colspan="2">اليوم الأول</th><th colspan="2">اليوم الثاني</th><th colspan="2">الإجمالي</th></tr>
+    <tr><th></th><th>طبيعي</th><th>غير طبيعي</th><th>طبيعي</th><th>غير طبيعي</th><th>طبيعي</th><th>غير طبيعي</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
+}
+
+function buildParaStats(arr){
+  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
+  let fields = [
+    {k:'bilharzia', l:'بلهارسيا'}, {k:'ameba', l:'أميبا'}, {k:'hpylori', l:'H.Pylori'},
+    {k:'sugar', l:'سكر بول'}, {k:'preg', l:'حمل بول'}
+  ];
+  let rows = '';
+  fields.forEach(f => {
+    let p1 = d1.filter(r=>r[f.k]==='غير طبيعي').length;
+    let p2 = d2.filter(r=>r[f.k]==='غير طبيعي').length;
+    let t1 = d1.filter(r=>r[f.k] && r[f.k]!=='').length;
+    let t2 = d2.filter(r=>r[f.k] && r[f.k]!=='').length;
+    rows += `<tr><td>${f.l}</td><td>${t1||'—'}</td><td style="color:var(--no)">${p1||'—'}</td>
+      <td>${t2||'—'}</td><td style="color:var(--no)">${p2||'—'}</td>
+      <td>${t1+t2||'—'}</td><td style="color:var(--no)">${p1+p2||'—'}</td></tr>`;
+  });
+  return `<div class="card"><div class="ch para">🔬 الطفيليات</div><div class="cb">
+    <table class="rpt-tbl"><thead><tr><th>الفحص</th><th colspan="2">اليوم الأول</th><th colspan="2">اليوم الثاني</th><th colspan="2">الإجمالي</th></tr>
+    <tr><th></th><th>عدد</th><th>إيجابي</th><th>عدد</th><th>إيجابي</th><th>عدد</th><th>إيجابي</th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
+}
+
+function buildXrayStats(arr){
+  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
+  let n1 = d1.filter(r=>r.result==='طبيعي').length, p1 = d1.filter(r=>r.result==='غير طبيعي').length;
+  let n2 = d2.filter(r=>r.result==='طبيعي').length, p2 = d2.filter(r=>r.result==='غير طبيعي').length;
+  return `<div class="card"><div class="ch xray">📡 الأشعة</div><div class="cb">
+    <table class="rpt-tbl"><thead><tr><th>اليوم</th><th>طبيعي</th><th>غير طبيعي</th><th>الإجمالي</th></tr></thead>
+    <tbody><tr><td>الأول</td><td>${n1}</td><td style="color:var(--no)">${p1}</td><td>${n1+p1}</td></tr>
+    <tr><td>الثاني</td><td>${n2}</td><td style="color:var(--no)">${p2}</td><td>${n2+p2}</td></tr>
+    <tr style="font-weight:700;background:#e8f0ff"><td>الإجمالي</td><td>${n1+n2}</td><td style="color:var(--no)">${p1+p2}</td><td>${arr.length}</td></tr>
+    </tbody></table></div></div>`;
+}
+
+function buildScreenStats(arr){
+  let d1 = arr.filter(r=>r.day===1), d2 = arr.filter(r=>r.day===2);
+  let abn = arr.filter(r=>r.bpR==='غير طبيعي'||r.rbsR==='غير طبيعي');
+  let html = `<div class="card"><div class="ch screen">💊 افحص واطمن</div><div class="cb">
+    <table class="rpt-tbl"><thead><tr><th>اليوم</th><th>ضغط طبيعي</th><th>ضغط مرتفع</th><th>سكر طبيعي</th><th>سكر مرتفع</th><th>الإجمالي</th></tr></thead>
+    <tbody><tr><td>الأول</td><td>${d1.filter(r=>r.bpR==='طبيعي').length}</td><td style="color:var(--no)">${d1.filter(r=>r.bpR==='غير طبيعي').length}</td>
+      <td>${d1.filter(r=>r.rbsR==='طبيعي').length}</td><td style="color:var(--no)">${d1.filter(r=>r.rbsR==='غير طبيعي').length}</td><td>${d1.length}</td></tr>
+    <tr><td>الثاني</td><td>${d2.filter(r=>r.bpR==='طبيعي').length}</td><td style="color:var(--no)">${d2.filter(r=>r.bpR==='غير طبيعي').length}</td>
+      <td>${d2.filter(r=>r.rbsR==='طبيعي').length}</td><td style="color:var(--no)">${d2.filter(r=>r.rbsR==='غير طبيعي').length}</td><td>${d2.length}</td></tr>
+    <tr style="font-weight:700;background:#e8f0ff"><td>الإجمالي</td><td>${arr.filter(r=>r.bpR==='طبيعي').length}</td><td style="color:var(--no)">${arr.filter(r=>r.bpR==='غير طبيعي').length}</td>
+      <td>${arr.filter(r=>r.rbsR==='طبيعي').length}</td><td style="color:var(--no)">${arr.filter(r=>r.rbsR==='غير طبيعي').length}</td><td>${arr.length}</td></tr>
+    </tbody></table>`;
+  if(abn.length) html += `<p style="color:var(--no);font-weight:700;margin-top:10px">⚠️ حالات غير طبيعية: ${abn.length}</p>`;
+  html += `</div></div>`;
+  return html;
+}
+
+// =============== WHATSAPP & EXCEL ===============
+function generateReportText(){
+  let total=records.length;
+  let blood=records.filter(r=>r.dept==='blood');
+  let para=records.filter(r=>r.dept==='para');
+  let xray=records.filter(r=>r.dept==='xray');
+  let screen=records.filter(r=>r.dept==='screen');
+  let abn=records.filter(r=>{
+    if(r.dept==='blood') return r.hbR==='غير طبيعي'||r.rbsR==='غير طبيعي';
+    if(r.dept==='para') return r.bilharzia==='غير طبيعي'||r.ameba==='غير طبيعي';
+    if(r.dept==='xray') return r.result==='غير طبيعي';
+    if(r.dept==='screen') return r.bpR==='غير طبيعي'||r.rbsR==='غير طبيعي';
+    return false;
+  });
+  let lines = ['📊 *تقرير القافلة*','🏥 '+ (session?.village||''),'📍 '+ (session?.center||''),'📅 '+new Date().toLocaleDateString('ar-EG'),'──────────────────',
+    '👥 الإجمالي: '+total,'🩸 الدم: '+blood.length,'🔬 الطفيليات: '+para.length,'📡 الأشعة: '+xray.length,'💊 افحص: '+screen.length,'──────────────────'];
+  if(abn.length){
+    lines.push('⚠️ حالات غير طبيعية:');
+    abn.slice(0,15).forEach((r,i)=>lines.push((i+1)+'. '+r.name+' ('+r.ticket+')'+(r.phone?' 📞'+r.phone:'')));
+    if(abn.length>15) lines.push('... و'+(abn.length-15)+' أخرى');
+  } else lines.push('✅ لا توجد حالات غير طبيعية');
+  return lines.join('\n');
+}
+function sendWhatsAppReport(){
+  window.open('https://wa.me/2012212021490?text='+encodeURIComponent(generateReportText()),'_blank');
+}
+
+function exportExcel(){
+  if(typeof XLSX === 'undefined'){ showToast('⚠️ مكتبة Excel غير محملة',false); return; }
+  if(!records.length){ showToast('⚠️ لا توجد بيانات',false); return; }
+  
+  let wb = XLSX.utils.book_new();
+  
+  // Summary sheet
+  let summary = [['ملخص القافلة'],[session?.village||''],[session?.center||''],[new Date().toLocaleDateString('ar-EG')],[''],['القسم','الإجمالي']];
+  let b = records.filter(r=>r.dept==='blood');
+  let p = records.filter(r=>r.dept==='para');
+  let x = records.filter(r=>r.dept==='xray');
+  let s = records.filter(r=>r.dept==='screen');
+  summary.push(['معمل الدم',b.length],['الطفيليات',p.length],['الأشعة',x.length],['افحص واطمن',s.length]);
+  summary.push(['الإجمالي',records.length]);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), 'الملخص');
+  
+  // Detailed sheets per department
+  function addDeptSheet(dept, name, headers, rowFn){
+    let items = records.filter(r=>r.dept===dept);
+    if(!items.length) return;
+    let data = [headers];
+    items.forEach((r,i) => {
+      let base = [i+1, r.name, r.age, r.gender, r.ticket, r.phone||'', r.day===1?'أول':'ثاني', r.savedAt?.substring(0,10)||'', r.emp||''];
+      data.push(base.concat(rowFn(r)));
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data), name);
+  }
+  
+  addDeptSheet('blood', 'معمل_الدم',
+    ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','التاريخ','الموظف','العيادة','Hb','نتيجة','سكر','نتيجة','فصيلة','HP','نتيجة','RBC','نتيجة','HCT','نتيجة','WBC','نتيجة','PLT','نتيجة','يوريك','نتيجة','بولينا','نتيجة','كرياتنين','نتيجة','TP','نتيجة','ألبيومين','نتيجة','بيليروبين','نتيجة','SGOT','نتيجة','SGPT','نتيجة','LDL','نتيجة','HDL','نتيجة','TG','نتيجة','كوليسترول','نتيجة','H.Pylori','حمل','ASOT','RF','CRP','HCV','HBsAg','HAV','BT','نتيجة','CT','نتيجة','ESR','نتيجة'],
+    r => [r.clinic||'', r.hb||'', r.hbR||'', r.rbs||'', r.rbsR||'', r.blood||'', r.hp||'', r.hpR||'', r.rbc||'', r.rbcR||'', r.hct||'', r.hctR||'', r.wbc||'', r.wbcR||'', r.plt||'', r.pltR||'', r.uric||'', r.uricR||'', r.urea||'', r.ureaR||'', r.creat||'', r.creatR||'', r.tp||'', r.tpR||'', r.alb||'', r.albR||'', r.bili||'', r.biliR||'', r.sgot||'', r.sgotR||'', r.sgpt||'', r.sgptR||'', r.ldl||'', r.ldlR||'', r.hdl||'', r.hdlR||'', r.tg||'', r.tgR||'', r.chol||'', r.cholR||'', r.hpylori||'', r.preg||'', r.asot||'', r.rf||'', r.crp||'', r.hcv||'', r.hbsag||'', r.hav||'', r.bt||'', r.btR||'', r.ct||'', r.ctR||'', r.esr||'', r.esrR||'']
+  );
+  
+  addDeptSheet('para', 'الطفيليات',
+    ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','التاريخ','الموظف','Urates','Phosphate','Oxalates','حمل بول','سكر بول','ألبيومين بول','بيليروبين بول','أسيتون','H.Pylori','بلهارسيا','تريكومونس','أميبا','جيارديا','H.nana','أكسيورس','أسكارس'],
+    r => [r.urates||'', r.phosphate||'', r.oxalates||'', r.preg||'', r.sugar||'', r.palb||'', r.pbili||'', r.acetone||'', r.hpylori||'', r.bilharzia||'', r.trichomonas||'', r.ameba||'', r.giardia||'', r.hnana||'', r.oxyuris||'', r.ascaris||'']
+  );
+  
+  addDeptSheet('xray', 'الأشعة',
+    ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','التاريخ','الموظف','العيادة','الكود','اسم الفحص','النتيجة','ملاحظات'],
+    r => [r.clinic||'', r.code||'', r.examname||'', r.result||'', r.remark||'']
+  );
+  
+  addDeptSheet('screen', 'افحص_واطمن',
+    ['#','الاسم','السن','الجنس','التذكرة','التليفون','اليوم','التاريخ','الموظف','تدخين','تاريخ سكر','تاريخ ضغط','ضغط','نتيجة','سكر','نتيجة','HbA1c','نتيجة','الإجراء','تحويل'],
+    r => [r.smoke||'', r.hxSugar||'', r.hxBp||'', r.bp||'', r.bpR||'', r.rbs||'', r.rbsR||'', r.hba1c||'', r.hba1cR||'', r.action||'', r.refer||'']
+  );
+  
+  let out = XLSX.write(wb, {bookType:'xlsx',type:'array'});
+  let blob = new Blob([out], {type:'application/octet-stream'});
+  let fn = 'تقرير_القافلة_'+new Date().toISOString().slice(0,10)+'.xlsx';
+  let a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fn;
+  a.click();
+  showToast('📥 تم تحميل ملف Excel');
+}
+
+// =============== TOAST & MODAL ===============
+function showToast(msg, ok=true){
+  let t = document.getElementById('toast');
+  t.style.background = ok ? 'var(--ok)' : 'var(--no)';
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+function closeMov(id){ document.getElementById(id).classList.remove('show'); }
+
+// =============== INIT ===============
+populateLoginUsers();
+updateLockUI();
+
+// Listen to Firebase changes
+if(dbRef){
+  dbRef.child('records').on('value', function(snap){
+    try{
+      var data=snap.val();
+      if(!data) return;
+      records=Object.values(data).filter(Boolean);
+      localStorage.setItem('recs', JSON.stringify(records));
+      // فقط لو المستخدم مسجّل دخول
+      if(curUser){
+        renderRec();
+        if(document.getElementById('sc-stats')?.classList.contains('active')) buildStats();
+      }
+    }catch(e){ console.warn('records listener error:',e); }
+  });
+
+  dbRef.child('staff').on('value', function(snap){
+    try{
+      var data=snap.val();
+      if(!data) return;
+      staff=Array.isArray(data)?data:Object.values(data);
+      staff=staff.filter(Boolean);
+      localStorage.setItem('staff', JSON.stringify(staff));
+      populateLoginUsers();
+      if(curUser) renderStaffList();
+    }catch(e){ console.warn('staff listener error:',e); }
+  });
+
+  dbRef.child('config').on('value', function(snap){
+    try{
+      var data=snap.val();
+      if(!data) return;
+      if(data.session){
+        session=data.session;
+        localStorage.setItem('sess', JSON.stringify(session));
+        if(curUser) applySessUI();
+      }
+      if(data.locked!==undefined){
+        locked=data.locked;
+        localStorage.setItem('locked', locked?'1':'0');
+        updateLockUI();
+      }
+      if(data.adminPass){ adminPass=data.adminPass; localStorage.setItem('apass',adminPass); }
+      if(data.staff){
+        var arr=Array.isArray(data.staff)?data.staff:Object.values(data.staff);
+        staff=arr.filter(Boolean);
+        localStorage.setItem('staff',JSON.stringify(staff));
+        populateLoginUsers();
+        if(curUser) renderStaffList();
+      }
+    }catch(e){ console.warn('config listener error:',e); }
+  });
+}
+</script>
+</body>
+</html>
